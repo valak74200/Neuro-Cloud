@@ -2,6 +2,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 
+
 def test_license_exists_and_not_empty():
     p = ROOT / 'LICENSE'
     assert p.exists()
