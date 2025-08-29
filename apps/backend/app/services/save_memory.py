@@ -3,7 +3,10 @@ from app.domain.repositories.memory_repository import MemoryRepository
 
 
 class SaveMemoryService:
-    """Application service: orchestrates validation and persistence of a Memory."""
+    """Application service.
+
+    Orchestrates validation and persistence of a Memory.
+    """
 
     def __init__(self, memory_repository: MemoryRepository) -> None:
         self._repo = memory_repository
