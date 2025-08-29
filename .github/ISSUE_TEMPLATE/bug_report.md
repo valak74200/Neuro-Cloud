@@ -7,12 +7,14 @@ assignees: ""
 ---
 
 ## Description
+
 Décrivez clairement le bug.
 
 ## Étapes pour reproduire
-1. 
-2. 
-3. 
+
+1.
+2.
+3.
 
 ## Résultat attendu
 
@@ -21,16 +23,19 @@ Décrivez clairement le bug.
 ## Logs / captures
 
 ## Environnement
+
 - App version:
 - OS/version: iOS | Android
 - Appareil:
 
 ## Impact / Sévérité
+
 - [ ] P0 critique
 - [ ] P1 majeur
 - [ ] P2 mineur
 
 ## Checklist
+
 - [ ] Cas de test ajouté
 - [ ] Scénarios E2E ajustés si nécessaire
 - [ ] Notes de sécurité/consentement vérifiées

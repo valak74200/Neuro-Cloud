@@ -27,7 +27,11 @@ def parse_args(argv: list[str]) -> tuple[list[str], Path | None]:
     i = 0
     while i < len(argv):
         if argv[i] == "--preview" and i + 1 < len(argv):
-            preview_path = (ROOT / argv[i + 1]).resolve() if not argv[i + 1].startswith("/") else Path(argv[i + 1]).resolve()
+            preview_path = (
+                (ROOT / argv[i + 1]).resolve()
+                if not argv[i + 1].startswith("/")
+                else Path(argv[i + 1]).resolve()
+            )
             i += 2
             continue
         raw.append(argv[i])
@@ -35,7 +39,7 @@ def parse_args(argv: list[str]) -> tuple[list[str], Path | None]:
     # Flatten comma-separated tokens into individual test filenames
     tests: list[str] = []
     for token in raw:
-        for part in token.split(','):
+        for part in token.split(","):
             part = part.strip()
             if part:
                 tests.append(part)
@@ -57,7 +61,9 @@ def main(argv: list[str]) -> int:
         print("No roadmap items to update.")
         # Still produce preview if requested
         if preview_path:
-            preview_path.write_text(ROADMAP_PATH.read_text(encoding="utf-8"), encoding="utf-8")
+            preview_path.write_text(
+                ROADMAP_PATH.read_text(encoding="utf-8"), encoding="utf-8"
+            )
         return 0
 
     content = ROADMAP_PATH.read_text(encoding="utf-8")
@@ -70,7 +76,10 @@ def main(argv: list[str]) -> int:
             return f"{CHECKED} {item_id}{rest}"
         return match.group(0)
 
-    pattern = re.compile(rf"^({re.escape(UNCHECKED)}|{re.escape(CHECKED)})\s+(NC-\d{{4}})(.*)$", re.MULTILINE)
+    pattern = re.compile(
+        rf"^({re.escape(UNCHECKED)}|{re.escape(CHECKED)})\s+(NC-\d{{4}})(.*)$",
+        re.MULTILINE,
+    )
     new_content = pattern.sub(replace_item, content)
 
     if preview_path:

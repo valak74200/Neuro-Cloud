@@ -7,6 +7,7 @@ Neuro-Cloud est une application mobile qui capture, transcrit, résume et indexe
 ---
 
 ## Sommaire
+
 - [Pourquoi Neuro-Cloud ?](#pourquoi-neuro-cloud-)
 - [Fonctionnalités principales](#fonctionnalités-principales)
 - [Cas d’usage couverts (mobile)](#cas-dusage-couverts-mobile)
@@ -26,6 +27,7 @@ Neuro-Cloud est une application mobile qui capture, transcrit, résume et indexe
 ---
 
 ## Pourquoi Neuro-Cloud ?
+
 - Retenir l’essentiel de vos réunions, conversations, cours, idées.
 - Rechercher intelligemment dans vos souvenirs (sémantique, tags, contexte, récence).
 - Être rappelé proactivement des points importants au bon moment.
@@ -34,6 +36,7 @@ Neuro-Cloud est une application mobile qui capture, transcrit, résume et indexe
 ---
 
 ## Fonctionnalités principales
+
 - Capture audio/texte (mobile) avec modes d’écoute « smart‑active »:
   - Auto‑réunion (calendrier)
   - Hotword on‑device (déclenchement local)
@@ -48,6 +51,7 @@ Neuro-Cloud est une application mobile qui capture, transcrit, résume et indexe
 ---
 
 ## Cas d’usage couverts (mobile)
+
 - Réunions visioconf (Zoom/Meet/Teams) depuis mobile: capture micro local + bot notetaker serveur (rejoint la réunion via API) avec consentement.
 - Réunions présentielles (salle): micro device/BT + VAD + tampon + diarisation serveur.
 - Conversations impromptues 1:1: hotword ou push‑to‑talk + consentement rapide.
@@ -58,6 +62,7 @@ Neuro-Cloud est une application mobile qui capture, transcrit, résume et indexe
 - Environnements bruyants: RNNoise/suppression de bruit, VAD adaptatif.
 
 Critères d’acceptation clés:
+
 - Latence transcription par segment < 30s; résumé fin de réunion < 2 min
 - Faux positifs hotword ≤ 1/jour; F1 VAD ≥ 0.90 bureau
 - Couverture tests ≥ 80%
@@ -108,6 +113,7 @@ graph TD
 ```
 
 Modèle DDD de référence (mobile):
+
 - Domain: `Memory`, `CaptureSession`, `TranscriptSegment`, `Participant`, `ConsentRecord`, `ImportanceScore`, `RetentionPolicy`, `RecallCard`, `Tag`.
 - Application: `StartPassiveListening`, `RequestConsent`, `RecordSegment`, `Transcribe`, `Summarize`, `IndexEmbeddings`, `SearchMemories`, `ProactiveRecall`, `PurgeData`.
 - Infrastructure: VAD (WebRTC/Silero), Hotword (openWakeWord/Porcupine), Transcription (Whisper/faster‑whisper), Diarisation (pyannote), Embeddings (OpenAI/UE), Vector DB (Qdrant/Weaviate), Stockage chiffré, Intégrations Calendrier/Zoom/Teams.
@@ -140,6 +146,7 @@ Proposition alignée avec les règles du projet:
 ---
 
 ## Stack technique
+
 - Mobile: React Native (Expo), Foreground Service Android, UI consentement, widgets push‑to‑talk, notifications.
 - Backend: Python FastAPI (Swagger/OpenAPI), HTTPX pour tests d’intégration.
 - Base de données: PostgreSQL (rel.), Qdrant/Weaviate (vectorielle), stockage fichiers chiffrés.
@@ -150,6 +157,7 @@ Proposition alignée avec les règles du projet:
 ---
 
 ## Sécurité, RGPD et consentement
+
 - Consentement explicite: bannière, beep configurable, annonce vocale, journal `ConsentRecord` horodaté par session/participant.
 - RGPD: chiffrement en transit (TLS) et au repos (AES‑256), clés dans Keychain/Keystore, résidence UE, export/suppression des données, politiques de rétention.
 - PII: redaction/masquage optionnels; séparation audio/texte vs embeddings.
@@ -158,6 +166,7 @@ Proposition alignée avec les règles du projet:
 ---
 
 ## Performances, SLO et coûts
+
 - SLO: transcription < 30s/segment, résumé < 2 min fin réunion, faux positifs hotword ≤ 1/jour, F1 VAD ≥ 0.90, couverture tests ≥ 80%.
 - Batterie/Data: éviter streaming continu; VAD + tampon 30–60s; upload Wi‑Fi prioritaire; codecs efficaces (Opus 16k). CPU moyen < 5% hors capture, < 15% en capture.
 - Coûts: on‑device d’abord (VAD, hotword, Whisper tiny/base quand possible), batch côté serveur, cache embeddings, budgets par utilisateur, fallback provider.
@@ -165,23 +174,26 @@ Proposition alignée avec les règles du projet:
 ---
 
 ## Démarrage rapide (non‑dev)
-1) Installer l’app (iOS/Android) — à venir (TestFlight/Play Store privé).  
-2) Se connecter (Supabase Auth).  
-3) Autoriser micro et activer les modes d’écoute souhaités.  
-4) Lancer une réunion ou utiliser le push‑to‑talk.  
-5) Consulter les résumés et rechercher vos souvenirs.
+
+1. Installer l’app (iOS/Android) — à venir (TestFlight/Play Store privé).
+2. Se connecter (Supabase Auth).
+3. Autoriser micro et activer les modes d’écoute souhaités.
+4. Lancer une réunion ou utiliser le push‑to‑talk.
+5. Consulter les résumés et rechercher vos souvenirs.
 
 ---
 
 ## Démarrage développeur
 
 Prérequis:
+
 - Node.js 18+ (recommandé), npm 9+ ou pnpm 8+
 - Python 3.11+
 - Docker (pour PostgreSQL et Qdrant/Weaviate en local)
 - OpenAI key (ou alternative) si nécessaire pour embeddings/LLM
 
 Services locaux (suggestion rapide):
+
 ```bash
 # PostgreSQL
 docker run --name nc-postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres:15
@@ -191,6 +203,7 @@ docker run --name nc-qdrant -p 6333:6333 -d qdrant/qdrant:latest
 ```
 
 Variables d’environnement (exemple):
+
 ```bash
 # Backend
 export NC_ENV=dev
@@ -204,6 +217,7 @@ export EXPO_PUBLIC_API_BASE_URL=http://localhost:8000
 ```
 
 Installation (proposition cible monorepo):
+
 ```bash
 # Mobile
 cd apps/mobile
@@ -223,12 +237,14 @@ uvicorn app.main:app --reload --port 8000
 ---
 
 ## Tests & Qualité
+
 - Python: Pytest (unit), HTTPX (intégration), coverage ≥ 80%.
 - Mobile E2E: Detox.
 - Lint/Format: Black, Flake8, isort, mypy (Python) ; ESLint + Prettier (JS/TS).
 - Audit sécurité: `pip-audit`, `npm audit`.
 
 Exemples:
+
 ```bash
 # Backend
 pytest -q --maxfail=1 --disable-warnings --cov=app
@@ -242,20 +258,23 @@ npm run lint
 ---
 
 ## CI/CD
-- Git flow: main (stable), develop (intégration), feature/*.
+
+- Git flow: main (stable), develop (intégration), feature/\*.
 - CI GitHub Actions: lint + tests unitaires + intégration + build.
 - CD: backend (Render/Heroku), mobile (Expo EAS). Gate sur tests et qualité.
 
 ---
 
 ## Roadmap MVP
-1) v1 — Auto‑réunion (calendrier), VAD + tampon, transcription, résumé, indexation, recherche, rappel « À retenir aujourd’hui ».
-2) v1.1 — Hotword + capture courte; journaux de consentement; redaction PII basique.
-3) v1.2 — Bot notetaker serveur pour visioconf; réglages pro (rétention, budgets, rôles).
+
+1. v1 — Auto‑réunion (calendrier), VAD + tampon, transcription, résumé, indexation, recherche, rappel « À retenir aujourd’hui ».
+2. v1.1 — Hotword + capture courte; journaux de consentement; redaction PII basique.
+3. v1.2 — Bot notetaker serveur pour visioconf; réglages pro (rétention, budgets, rôles).
 
 ---
 
 ## Contribution
+
 - Issues: user story + critères d’acceptation + cas de test.
 - PR: petite portée, tests inclus, doc mise à jour.
 - Commits: Conventional Commits.
@@ -264,10 +283,12 @@ npm run lint
 ---
 
 ## Changelog & Licence
+
 - Voir `CHANGELOG.md` (SemVer: MAJOR.MINOR.PATCH).
 - Licence: à définir (MIT/Apache-2.0, selon objectifs commerciaux et contributions).
 
 ---
 
 ## Références & Règles du dépôt
+
 - Les règles détaillées (DDD, cas d’usage mobiles, sécurité, tests) sont dans `/.cursor/rules/rules.mdc`. Elles sont contraignantes et doivent être respectées pour toute contribution.

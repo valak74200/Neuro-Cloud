@@ -3,6 +3,7 @@
 Nous adhérons à des standards d’inclusion et de respect mutuel. Aucune forme de harcèlement ou de discrimination ne sera tolérée.
 
 Principes:
+
 - Être bienveillant, respectueux, ouvert au feedback.
 - Pas d’attaques personnelles ni de langage offensant.
 - Respect de la confidentialité et des règles RGPD.
