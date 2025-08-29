@@ -15,15 +15,15 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Install backend deps
-        working-directory: apps/backend
+      - name: Set up Node (for Prettier)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+      - name: Install pre-commit
         run: |
-          python -m venv .venv
-          source .venv/bin/activate
-          pip install -U pip
-          pip install -r requirements.txt
+          python -m pip install --upgrade pip
           pip install pre-commit
-      - name: Run pre-commit (Python linters)
+      - name: Run pre-commit (linters)
         run: |
           pre-commit run --all-files || (echo "Pre-commit hooks failed" && exit 1)
 
@@ -63,14 +63,22 @@ from pathlib import Path
 
 tree = ET.parse('pytest-report.xml')
 root = tree.getroot()
-passed = []
+passed = set()
 for tc in root.iter('testcase'):
     has_fail = any(child.tag in ('failure', 'error') for child in tc)
-    if not has_fail:
-        file = tc.attrib.get('file')
-        if file:
-            passed.append(Path(file).name)
-out = ','.join(sorted(set(passed)))
+    if has_fail:
+        continue
+    file_attr = tc.attrib.get('file')
+    if file_attr:
+        passed.add(Path(file_attr).name)
+        continue
+    classname = tc.attrib.get('classname') or ''
+    # pytest classname often like 'tests.test_module'
+    mod = classname.split('.')[-1]
+    if mod.startswith('test_'):
+        passed.add(mod + '.py') if not mod.endswith('.py') else passed.add(mod)
+
+out = ','.join(sorted(passed))
 with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
     fh.write(f"passed={out}\n")
 PY

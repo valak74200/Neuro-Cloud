@@ -23,16 +23,23 @@ UNCHECKED = "- [ ]"
 
 def parse_args(argv: list[str]) -> tuple[list[str], Path | None]:
     preview_path: Path | None = None
-    out: list[str] = []
+    raw: list[str] = []
     i = 0
     while i < len(argv):
         if argv[i] == "--preview" and i + 1 < len(argv):
             preview_path = (ROOT / argv[i + 1]).resolve() if not argv[i + 1].startswith("/") else Path(argv[i + 1]).resolve()
             i += 2
             continue
-        out.append(argv[i])
+        raw.append(argv[i])
         i += 1
-    return out, preview_path
+    # Flatten comma-separated tokens into individual test filenames
+    tests: list[str] = []
+    for token in raw:
+        for part in token.split(','):
+            part = part.strip()
+            if part:
+                tests.append(part)
+    return tests, preview_path
 
 
 def main(argv: list[str]) -> int:
