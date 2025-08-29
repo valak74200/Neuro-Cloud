@@ -1,0 +1,225 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+## 🎯 Objectif du projet
+Développer **Neuro-Cloud**, un cloud mémoire personnel basé sur l’IA.  
+Les utilisateurs peuvent enregistrer des souvenirs (texte/audio), qui sont stockés, indexés et retrouvés grâce à une IA sous forme de "double mémoire numérique".  
+
+## 🏛️ Architecture générale
+Nous utilisons **Domain-Driven Design (DDD)** pour structurer le projet.  
+Séparation claire entre :
+- **Domain** → cœur métier (entités, agrégats, services métiers, value objects).  
+- **Application** → cas d’usage (orchestration entre domain et infrastructure).  
+- **Infrastructure** → persistance (DB, API externes, IA, fichiers, auth).  
+- **Interfaces** → présentation (API REST/GraphQL, front mobile/web).  
+
+## 📂 Structure du projet (monorepo conseillé)
+/neuro-cloud
+/apps
+/backend → API (Node.js NestJS ou Python FastAPI)
+/frontend → React Native (mobile cross-platform)
+/packages
+/domain → logique métier pure
+/application → cas d’usage
+/infrastructure → implémentations DB, IA, API
+/shared → libs communes (types, utils, config)
+/tests
+/unit
+/integration
+/e2e
+
+---
+
+## 🔑 Principes de développement
+
+1. **Clean Code**
+   - Nommer clairement les variables, méthodes et entités.
+   - Pas de logique métier dans les contrôleurs ou repositories → uniquement dans **domain**.
+   - Respecter SOLID + DRY + KISS.
+   - Chaque fichier ≤ 300 lignes, chaque fonction ≤ 30 lignes.
+
+2. **DDD**
+   - **Entities** : objets métier persistants (ex: Memory, User).  
+   - **Value Objects** : immuables, sans identité (ex: MemoryContent, Email).  
+   - **Aggregates** : regroupent cohérence métier (ex: MemoryAggregate).  
+   - **Domain Services** : logique métier sans état.  
+   - **Application Services** : exécutent un cas d’usage (ex: SaveMemory, RetrieveMemory).  
+   - **Repositories** : interfaces dans domain, implémentations dans infrastructure.
+
+3. **CQRS (facultatif pour évolutivité)**  
+   - Commandes = écriture (ajout souvenir).  
+   - Queries = lecture (recherche souvenirs).
+
+4. **Tests en priorité**
+   - **Unit tests** : chaque entité / service métier.  
+   - **Integration tests** : API ↔ DB.  
+   - **E2E tests** : scénarios utilisateur (via Playwright/Detox).  
+   - TDD recommandé : écrire les tests avant la logique.
+
+5. **Documentation**
+   - Chaque module doit avoir un README expliquant rôle + dépendances.  
+   - Swagger/OpenAPI pour backend.  
+
+---
+
+## 🔧 Stack technique recommandée
+
+- **Backend** : Python (FastAPI).  
+- **Frontend** : React Native (Expo).  
+- **DB relationnelle** : PostgreSQL.  
+- **DB vectorielle** : Qdrant ou Weaviate (pour recherche souvenirs).  
+- **IA** :
+  - Transcription : Whisper API.  
+  - Embeddings : OpenAI  
+  - LLM : OpenAI GPT,.  
+- **Auth** : Supabase Auth.  
+- **Cloud** : Supabase / AWS / Render.  
+
+---
+
+## 🧪 Tests
+
+- **Unit** : Pytest (Python).  
+- **Integration** : HTTPX (Python).  
+- **E2E** : Detox (mobile).  
+- **Coverage cible** : 80% minimum.  
+
+---
+
+## 🚀 CI/CD
+
+1. **Git flow** :  
+   - main = stable  
+   - develop = intégration  
+   - feature/* = nouvelles fonctionnalités  
+
+2. **CI (GitHub Actions)** :  
+   - Lint + format (ESLint/Prettier ou Black/Flake8).  
+   - Run unit + integration tests.  
+   - Build backend + frontend.  
+
+3. **CD** :  
+   - Déploiement auto sur Render/Heroku (backend).  
+   - Expo EAS (frontend mobile).  
+
+---
+
+## 🔐 Sécurité & RGPD
+
+- Données utilisateurs chiffrées en transit (TLS) et au repos (AES-256).  
+- Respect RGPD → hébergement UE (Scaleway, OVH, CleverCloud).  
+- Possibilité d’export/suppression des données.  
+- Stockage audio/textes séparé des embeddings.  
+
+---
+
+## 🧭 Règles Cursor
+
+- Toujours respecter l’architecture DDD.  
+- Ne jamais écrire de logique métier directement dans un contrôleur.  
+- Toujours créer les **tests unitaires** avec chaque nouvelle entité ou service.  
+- Suggérer des refactorings si code dupliqué > 2 fois.  
+- Proposer systématiquement :  
+  - docstring pour chaque fonction publique  
+  - README pour chaque module  
+- Avant de coder une feature : créer son **cas d’usage (application service)**.  
+- Toujours penser **scalabilité et maintenabilité**.  
+
+---
+
+## 📱 Cas d’usage mobiles et solutions (iOS/Android uniquement)
+
+Objectif: couvrir tous les scénarios d’usage sur mobile en conciliant valeur utilisateur, contraintes OS, conformité légale et performance/batterie. Le paradigme recommandé est l’« écoute smart‑active » (déclenchée par contexte/consentement), pas l’« always‑on » illimitée.
+
+### Modes d’écoute (socle transversal)
+- **Auto‑réunion (calendrier)**: déclenchement aux créneaux du calendrier marqués comme réunions.
+  - iOS: session micro en avant‑plan; pas de capture système d’autres apps; afficheur « Enregistrement » visible.
+  - Android: Foreground Service micro + notification persistante; pas de capture audio d’autres apps sans API dédiée OEM.
+  - Consentement: bannière dans l’app + beep périodique (configurable) + journal `ConsentRecord` par événement.
+  - Critères d’acceptation: démarrage < 5s à l’heure; 0 crash; latence transcript < 30s post‑segment; résumé livré < 2 min fin réunion.
+
+- **Hotword on‑device**: réveil par mot‑clé pour lancer une capture courte.
+  - iOS: actif uniquement quand l’app est au premier plan (limitation background micro).  
+  - Android: actif via Foreground Service; seuils pour limiter faux positifs.
+  - Critères d’acceptation: faux positifs ≤ 1/jour; démarrage en < 1s après hotword.
+
+- **VAD opportuniste**: détection de voix et prise depuis tampon circulaire (30–60s) si conditions remplies (app visible/consentement obtenu).
+  - iOS: en avant‑plan;
+  - Android: Foreground Service.
+  - Critères d’acceptation: F1 VAD ≥ 0.90 en bureau; perte < 5s au début de prise de parole.
+
+- **Manuel (push‑to‑talk)**: bouton/widget/watch pour mémo rapide.
+  - Critères d’acceptation: latence transcript < 10s; disponible hors‑ligne.
+
+### Cas d’usage et solutions
+
+- **Réunion visioconférence (Zoom/Meet/Teams) depuis mobile**
+  - Limites: iOS/Android ne permettent pas la capture de l’audio d’autres apps.  
+  - Solution: capture du micro local + déclenchement d’un bot serveur « notetaker » qui rejoint la réunion (via API Zoom/Google/Teams) après consentement.  
+  - iOS: session au premier plan; indicateur d’enregistrement; pas de background illimité.  
+  - Android: Foreground Service; notification persistante.
+  - Consentement: bannière, beep, journal participants; lien « en savoir plus » RGPD.
+  - Acceptation: WER ≤ 20% FR/EN; résumé avec décisions + action items; livraison < 2 min.
+
+- **Réunion présentielle (salle)**
+  - Solution: micro du device (ou micro externe BT) + VAD + tampon; diarisation serveur si plusieurs voix.
+  - iOS: avant‑plan; segmentation 15–30 min; upload en Wi‑Fi prioritaire.
+  - Android: Foreground Service longues sessions.
+  - Acceptation: WER ≤ 20%; diarisation ≥ 75%; chapitrage auto; export PDF/Markdown.
+
+- **Conversation impromptue 1:1**
+  - Solution: hotword (réveil) puis capture 1–5 min; ou push‑to‑talk.
+  - Consentement rapide: écran dédié + beep; stockage consentement par contact.
+  - Acceptation: < 1 faux positif/jour; rappel contextuel (points clés) < 1h.
+
+- **Monologue / prise de notes perso**
+  - Solution: push‑to‑talk + transcription locale si possible; tags rapides.
+  - Acceptation: latence < 10s; recherche disponible < 1 min.
+
+- **Cours / conférence longue**
+  - Solution: sessions longues segmentées; réduction de bruit; upload différé.
+  - iOS: avant‑plan; conserver écran actif si l’utilisateur le souhaite.  
+  - Android: Foreground Service.
+  - Acceptation: chapitres + mots‑clés; résumé hiérarchique (TL;DR + sections).
+
+- **Appels téléphoniques (cellulaire/VoIP)**
+  - iOS: enregistrement d’appel natif interdit → proposer pont d’appel serveur (bridge) avec consentement explicite ou récap post‑appel guidé in‑app.
+  - Android: restreint selon OEM/région; si activé, Foreground Service + annonce/beep + journal.
+  - Acceptation: si enregistrement impossible, flow « récap 3 taps » (guides prompts) < 2 min.
+
+- **Mode hors‑ligne**
+  - Solution: file locale chiffrée; VAD on‑device; transcription locale optionnelle (si device OK) sinon upload différé; reprise réseau.
+  - Acceptation: aucune perte > 30s; sync < 5 min au retour réseau.
+
+- **Environnements bruyants**
+  - Solution: RNNoise/suppression de bruit; VAD adaptatif; micro externe conseillé.
+  - Acceptation: F1 VAD ≥ 0.90 en open‑space.
+
+- **Multilingue et traduction**
+  - Solution: détection auto langue; Whisper multi‑langue; traduction opt‑in.
+  - Acceptation: précision ≥ 85% FR/EN; langue par segment.
+
+### Exigences transverses (mobile)
+- **Consentement & légal**: pays one‑party/two‑party; beep configurable; annonce vocale; journal horodaté `ConsentRecord` par session/participant; stockage preuve.
+- **Sécurité & RGPD**: chiffrement au repos (AES‑256) + en transit (TLS); clés dans Keychain/Keystore; option E2EE; résidence UE; redaction PII; `RetentionPolicy` par espace.
+- **Performance & batterie**: CPU moyen < 5% hors capture; < 15% en capture; consommation data ≤ 200 Mo/heure audio compressée; upload Wi‑Fi prioritaire.
+- **Coûts**: transcription on‑device préférée; côté serveur en lot (batching); cache embeddings; budgets par utilisateur; provider fallback.
+- **Observabilité**: télémétrie privacy‑preserving (événements anonymisés); santé du pipeline; alertes erreurs.
+- **Accessibilité**: commandes vocales, contrastes, sous‑titres, haptique.
+
+### Modèle DDD de référence (mobile)
+- **Domain (exemples)**: `Memory`, `CaptureSession`, `TranscriptSegment`, `Participant`, `ConsentRecord`, `ImportanceScore`, `RetentionPolicy`, `RecallCard`, `Tag`.
+- **Application (use cases)**: `StartPassiveListening`, `RequestConsent`, `RecordSegment`, `Transcribe`, `Summarize`, `IndexEmbeddings`, `SearchMemories`, `ProactiveRecall`, `PurgeData`.
+- **Infrastructure (mobile)**: VAD (WebRTC/Silero), hotword (openWakeWord/Porcupine), transcription (Whisper/faster‑whisper), diarisation (pyannote côté serveur), embeddings (OpenAI/UE), Qdrant/Weaviate, stockage chiffré, intégrations Calendrier/Zoom/Teams (pour bot serveur).
+- **Interfaces (mobile)**: React Native (Expo), Foreground Service Android, UI consentement, widgets push‑to‑talk, notifications.
+
+### SLO / KPIs
+- Latence transcription (par segment): **< 30s**
+- Livraison résumé fin de réunion: **< 2 min**
+- Faux positifs hotword: **≤ 1/jour**
+- F1 VAD en bureau: **≥ 0.90**
+- Couverture tests: **≥ 80%** (unit/intégration/E2E Detox)
+
+---

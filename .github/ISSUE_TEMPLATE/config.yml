@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation du projet
+    url: https://example.com/docs
+    about: Consulter les règles et la documentation avant d’ouvrir une issue.

@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "develop"]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install backend deps
+        working-directory: apps/backend
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install -U pip
+          pip install -r requirements.txt
+          pip install pre-commit
+      - name: Run pre-commit (Python linters)
+        run: |
+          pre-commit run --all-files || (echo "Pre-commit hooks failed" && exit 1)
+
+  backend-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install backend deps
+        working-directory: apps/backend
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install -U pip
+          pip install -r requirements.txt
+
+      - name: Run backend tests
+        working-directory: apps/backend
+        run: |
+          source .venv/bin/activate
+          pytest -q --maxfail=1 --disable-warnings --cov=app --junitxml=pytest-report.xml
+
+      - name: Collect passed tests
+        id: collect
+        working-directory: apps/backend
+        run: |
+          python - <<'PY'
+import os
+import xml.etree.ElementTree as ET
+from pathlib import Path
+
+tree = ET.parse('pytest-report.xml')
+root = tree.getroot()
+passed = []
+for tc in root.iter('testcase'):
+    has_fail = any(child.tag in ('failure', 'error') for child in tc)
+    if not has_fail:
+        file = tc.attrib.get('file')
+        if file:
+            passed.append(Path(file).name)
+out = ','.join(sorted(set(passed)))
+with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+    fh.write(f"passed={out}\n")
+PY
+
+      - name: Update roadmap
+        if: github.ref == 'refs/heads/main'
+        run: |
+          python3 scripts/update_progress.py ${{ steps.collect.outputs.passed }}
+
+      - name: Commit roadmap update
+        if: github.ref == 'refs/heads/main'
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "ci: update roadmap progress"
+          file_pattern: docs/ROADMAP.md
