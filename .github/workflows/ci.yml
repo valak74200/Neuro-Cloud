@@ -31,6 +31,7 @@ jobs:
         run: |
           pre-commit run --all-files
       - name: Commit pre-commit changes
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "style: apply pre-commit formatters"
