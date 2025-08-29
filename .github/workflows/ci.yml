@@ -57,31 +57,31 @@ jobs:
         working-directory: apps/backend
         run: |
           python - <<'PY'
-import os
-import xml.etree.ElementTree as ET
-from pathlib import Path
+          import os
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
 
-tree = ET.parse('pytest-report.xml')
-root = tree.getroot()
-passed = set()
-for tc in root.iter('testcase'):
-    has_fail = any(child.tag in ('failure', 'error') for child in tc)
-    if has_fail:
-        continue
-    file_attr = tc.attrib.get('file')
-    if file_attr:
-        passed.add(Path(file_attr).name)
-        continue
-    classname = tc.attrib.get('classname') or ''
-    # pytest classname often like 'tests.test_module'
-    mod = classname.split('.')[-1]
-    if mod.startswith('test_'):
-        passed.add(mod + '.py') if not mod.endswith('.py') else passed.add(mod)
+          tree = ET.parse('pytest-report.xml')
+          root = tree.getroot()
+          passed = set()
+          for tc in root.iter('testcase'):
+              has_fail = any(child.tag in ('failure', 'error') for child in tc)
+              if has_fail:
+                  continue
+              file_attr = tc.attrib.get('file')
+              if file_attr:
+                  passed.add(Path(file_attr).name)
+                  continue
+              classname = tc.attrib.get('classname') or ''
+              # pytest classname often like 'tests.test_module'
+              mod = classname.split('.')[-1]
+              if mod.startswith('test_'):
+                  passed.add(mod + '.py') if not mod.endswith('.py') else passed.add(mod)
 
-out = ','.join(sorted(passed))
-with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
-    fh.write(f"passed={out}\n")
-PY
+          out = ','.join(sorted(passed))
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+              fh.write(f"passed={out}\n")
+          PY
 
       - name: Preview roadmap (PR only)
         if: github.event_name == 'pull_request'
