@@ -15,13 +15,13 @@ Cette roadmap est le fil rouge du projet. Chaque item possède un ID unique (NC-
 - [x] NC-0001 Créer README (vision, DDD, cas d’usage mobiles, SLO) — tests: n/a
 - [x] NC-0002 Règles `.cursor/rules/rules.mdc` complètes (mobile) — tests: n/a
 - [x] NC-0003 CHANGELOG & templates issues/PR/MR — tests: n/a
-- [ ] NC-0004 Licence (MIT/Apache-2.0) — tests: n/a
-- [ ] NC-0005 CONTRIBUTING.md (workflow, DDD, tests, CI) — tests: n/a
+- [x] NC-0004 Licence (MIT/Apache-2.0) — tests: n/a
+- [x] NC-0005 CONTRIBUTING.md (workflow, DDD, tests, CI) — tests: n/a
 - [ ] NC-0006 CODE_OF_CONDUCT.md — tests: n/a
-- [ ] NC-0007 Hooks pre-commit (lint + tests rapides) — tests: `test_precommit_hooks.py`
-- [ ] NC-0008 Environnements `.env` + docs secrets — tests: n/a
-- [ ] NC-0009 Docker compose (PostgreSQL, Qdrant/Weaviate, MinIO) — tests: `test_docker_local.py`
-- [ ] NC-0010 Documentation API (Swagger/OpenAPI) — tests: `test_openapi_schema.py`
+- [x] NC-0007 Hooks pre-commit (lint + tests rapides) — tests: `test_precommit_hooks.py`
+- [x] NC-0008 Environnements `.env` + docs secrets — tests: n/a
+- [x] NC-0009 Docker compose (PostgreSQL, Qdrant/Weaviate, MinIO) — tests: `test_docker_local.py`
+- [x] NC-0010 Documentation API (Swagger/OpenAPI) — tests: `test_openapi_schema.py`
 
 ---
 
