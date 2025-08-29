@@ -75,7 +75,25 @@ with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
     fh.write(f"passed={out}\n")
 PY
 
-      - name: Update roadmap
+      - name: Preview roadmap (PR only)
+        if: github.event_name == 'pull_request'
+        run: |
+          python3 scripts/update_progress.py ${{ steps.collect.outputs.passed }} --preview build/ROADMAP.preview.md
+          echo "### Aperçu Roadmap (après tests de la PR)" >> $GITHUB_STEP_SUMMARY
+          echo "Ces items seraient cochés si mergés dans main." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '\n```' >> $GITHUB_STEP_SUMMARY
+          cat build/ROADMAP.preview.md >> $GITHUB_STEP_SUMMARY
+          echo '\n```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload roadmap preview artifact
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: roadmap-preview
+          path: build/ROADMAP.preview.md
+
+      - name: Update roadmap (only on main)
         if: github.ref == 'refs/heads/main'
         run: |
           python3 scripts/update_progress.py ${{ steps.collect.outputs.passed }}

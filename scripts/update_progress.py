@@ -14,23 +14,43 @@ TEST_TO_IDS = {
     "test_repo_foundations_files.py": ["NC-0004", "NC-0005", "NC-0008"],
 }
 
-ROADMAP_PATH = Path(__file__).resolve().parents[1] / "docs" / "ROADMAP.md"
+ROOT = Path(__file__).resolve().parents[1]
+ROADMAP_PATH = ROOT / "docs" / "ROADMAP.md"
 
 CHECKED = "- [x]"
 UNCHECKED = "- [ ]"
 
 
-def main(passed_tests: list[str]) -> int:
+def parse_args(argv: list[str]) -> tuple[list[str], Path | None]:
+    preview_path: Path | None = None
+    out: list[str] = []
+    i = 0
+    while i < len(argv):
+        if argv[i] == "--preview" and i + 1 < len(argv):
+            preview_path = (ROOT / argv[i + 1]).resolve() if not argv[i + 1].startswith("/") else Path(argv[i + 1]).resolve()
+            i += 2
+            continue
+        out.append(argv[i])
+        i += 1
+    return out, preview_path
+
+
+def main(argv: list[str]) -> int:
+    tests, preview_path = parse_args(argv)
+
     if not ROADMAP_PATH.exists():
         print(f"Roadmap not found: {ROADMAP_PATH}")
         return 1
 
     ids_to_check: set[str] = set()
-    for test_name in passed_tests:
+    for test_name in tests:
         ids_to_check.update(TEST_TO_IDS.get(test_name, []))
 
     if not ids_to_check:
         print("No roadmap items to update.")
+        # Still produce preview if requested
+        if preview_path:
+            preview_path.write_text(ROADMAP_PATH.read_text(encoding="utf-8"), encoding="utf-8")
         return 0
 
     content = ROADMAP_PATH.read_text(encoding="utf-8")
@@ -46,6 +66,12 @@ def main(passed_tests: list[str]) -> int:
     pattern = re.compile(rf"^({re.escape(UNCHECKED)}|{re.escape(CHECKED)})\s+(NC-\d{{4}})(.*)$", re.MULTILINE)
     new_content = pattern.sub(replace_item, content)
 
+    if preview_path:
+        preview_path.parent.mkdir(parents=True, exist_ok=True)
+        preview_path.write_text(new_content, encoding="utf-8")
+        print(f"Preview written to {preview_path}")
+        return 0
+
     if new_content != content:
         ROADMAP_PATH.write_text(new_content, encoding="utf-8")
         print(f"Updated roadmap: checked {sorted(ids_to_check)}")
@@ -55,5 +81,5 @@ def main(passed_tests: list[str]) -> int:
 
 
 if __name__ == "__main__":
-    # Expect test file names passed as CLI args
+    # Expect test file names passed as CLI args, with optional --preview <path>
     sys.exit(main(sys.argv[1:]))
