@@ -20,9 +20,7 @@ Format inspiré de « Keep a Changelog » et ce projet adhère au versionnage s�
 
 ### Security
 
--
-
----
+- ***
 
 ## [0.1.0] - 2025-08-29
 
