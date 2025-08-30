@@ -1,0 +1,59 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Env
+.env
+.env.*
+.envrc
+
+# Node / React Native / Expo
+node_modules/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.expo/
+.expo-shared/
+web-build/
+dist/
+build/
+android/
+ios/
+*.keystore
+*.jks
+
+# Caches & temp
+.cache/
+**/.cache/
+.tmp/
+
+# Data/artifacts (local only)
+.data/
+.qdrant/
+pgdata/
+
+# IDE
+.vscode/
+.idea/
+
+# Docker overrides
+docker-compose.override.yml

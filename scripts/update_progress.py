@@ -12,6 +12,13 @@ TEST_TO_IDS = {
     "test_docker_local.py": ["NC-0009"],
     "test_openapi_schema.py": ["NC-0010"],
     "test_repo_foundations_files.py": ["NC-0004", "NC-0005", "NC-0008"],
+    "test_transcript_segment.py": ["NC-1004"],
+    "test_capture_session.py": ["NC-1005"],
+    "test_participant.py": ["NC-1006"],
+    "test_consent_record.py": ["NC-1007"],
+    "test_tag_importance.py": ["NC-1008"],
+    "test_retention_policy.py": ["NC-1009"],
+    "test_recall_card.py": ["NC-1010"],
 }
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -36,7 +43,6 @@ def parse_args(argv: list[str]) -> tuple[list[str], Path | None]:
             continue
         raw.append(argv[i])
         i += 1
-    # Flatten comma-separated tokens into individual test filenames
     tests: list[str] = []
     for token in raw:
         for part in token.split(","):
@@ -56,15 +62,6 @@ def main(argv: list[str]) -> int:
     ids_to_check: set[str] = set()
     for test_name in tests:
         ids_to_check.update(TEST_TO_IDS.get(test_name, []))
-
-    if not ids_to_check:
-        print("No roadmap items to update.")
-        # Still produce preview if requested
-        if preview_path:
-            preview_path.write_text(
-                ROADMAP_PATH.read_text(encoding="utf-8"), encoding="utf-8"
-            )
-        return 0
 
     content = ROADMAP_PATH.read_text(encoding="utf-8")
 
@@ -90,12 +87,11 @@ def main(argv: list[str]) -> int:
 
     if new_content != content:
         ROADMAP_PATH.write_text(new_content, encoding="utf-8")
-        print(f"Updated roadmap: checked {sorted(ids_to_check)}")
+        print("Updated roadmap")
     else:
         print("No changes applied to roadmap.")
     return 0
 
 
 if __name__ == "__main__":
-    # Expect test file names passed as CLI args, with optional --preview <path>
     sys.exit(main(sys.argv[1:]))

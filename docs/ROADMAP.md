@@ -177,7 +177,7 @@ Cette roadmap est le fil rouge du projet. Chaque item possède un ID unique (NC-
 
 ---
 
-## 9. Pro (optionnel)
+## 9. Pro
 
 - [ ] NC-9001 Bot notetaker serveur (Zoom/Meet/Teams) — tests: `test_bot_notetaker.py`
 - [ ] NC-9002 Intégrations Calendrier avancées — tests: `test_calendar_integration.py`
