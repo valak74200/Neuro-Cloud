@@ -32,13 +32,13 @@ Cette roadmap est le fil rouge du projet. Chaque item possède un ID unique (NC-
 - [x] NC-1001 Squelette FastAPI + /healthz — tests: `test_healthz.py`
 - [x] NC-1002 Entité `Memory` + tests unitaires — tests: `test_memory_domain.py`
 - [x] NC-1003 Service `SaveMemoryService` + repo mémoire — tests: `test_api_memories.py`
-- [ ] NC-1004 Entité `TranscriptSegment` (audio segment) — tests: `test_transcript_segment.py`
-- [ ] NC-1005 Entité `CaptureSession` — tests: `test_capture_session.py`
-- [ ] NC-1006 Entité `Participant` — tests: `test_participant.py`
-- [ ] NC-1007 Entité `ConsentRecord` — tests: `test_consent_record.py`
-- [ ] NC-1008 Entité `Tag` & `ImportanceScore` — tests: `test_tag_importance.py`
-- [ ] NC-1009 Entité `RetentionPolicy` — tests: `test_retention_policy.py`
-- [ ] NC-1010 Entité `RecallCard` — tests: `test_recall_card.py`
+- [x] NC-1004 Entité `TranscriptSegment` (audio segment) — tests: `test_transcript_segment.py`
+- [x] NC-1005 Entité `CaptureSession` — tests: `test_capture_session.py`
+- [x] NC-1006 Entité `Participant` — tests: `test_participant.py`
+- [x] NC-1007 Entité `ConsentRecord` — tests: `test_consent_record.py`
+- [x] NC-1008 Entité `Tag` & `ImportanceScore` — tests: `test_tag_importance.py`
+- [x] NC-1009 Entité `RetentionPolicy` — tests: `test_retention_policy.py`
+- [x] NC-1010 Entité `RecallCard` — tests: `test_recall_card.py`
 - [ ] NC-1011 Repositories (interfaces) pour toutes les entités — tests: `test_repositories_contracts.py`
 
 ### 1.2 Services d’application (use cases)
