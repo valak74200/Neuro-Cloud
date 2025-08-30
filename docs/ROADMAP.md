@@ -39,7 +39,7 @@ Cette roadmap est le fil rouge du projet. Chaque item possède un ID unique (NC-
 - [x] NC-1008 Entité `Tag` & `ImportanceScore` — tests: `test_tag_importance.py`
 - [x] NC-1009 Entité `RetentionPolicy` — tests: `test_retention_policy.py`
 - [x] NC-1010 Entité `RecallCard` — tests: `test_recall_card.py`
-- [ ] NC-1011 Repositories (interfaces) pour toutes les entités — tests: `test_repositories_contracts.py`
+- [x] NC-1011 Repositories (interfaces) pour toutes les entités — tests: `test_repositories_contracts.py`
 
 ### 1.2 Services d’application (use cases)
 
