@@ -18,6 +18,19 @@ services:
     volumes:
       - qdrant_storage:/qdrant/storage
 
+  diarizer:
+    build: ./services/diarizer
+    container_name: nc-diarizer
+    environment:
+      - HF_TOKEN=${HF_TOKEN}
+      - HUGGING_FACE_HUB_TOKEN=${HUGGING_FACE_HUB_TOKEN:-${HF_TOKEN}}
+      - HF_HOME=/root/.cache/huggingface
+      - PYANNOTE_DEVICE=cpu
+    ports:
+      - "7070:7070"
+    volumes:
+      - ~/.cache/huggingface:/root/.cache/huggingface
+
 volumes:
   pgdata:
   qdrant_storage:

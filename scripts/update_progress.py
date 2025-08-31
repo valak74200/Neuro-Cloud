@@ -23,6 +23,7 @@ TEST_TO_IDS = {
     "test_session_service.py": ["NC-1101"],
     "test_record_segment_service.py": ["NC-1102"],
     "test_transcribe_service.py": ["NC-1103"],
+    "test_diarization_service.py": ["NC-1104"],
 }
 
 ROOT = Path(__file__).resolve().parents[1]

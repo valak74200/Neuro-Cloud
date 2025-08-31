@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="1.036" timestamp="2025-08-31T13:45:35.566192+02:00" hostname="MSI"><testcase classname="tests.test_diarization_service" name="test_diarize_session_returns_segments" time="0.928" /></testsuite></testsuites>

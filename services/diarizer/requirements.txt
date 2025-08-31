@@ -1,0 +1,11 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+fastapi>=0.111.0,<1.0.0
+uvicorn[standard]>=0.30.0,<1.0.0
+python-multipart>=0.0.9
+soundfile
+httpx
+numpy==1.26.4
+scipy
+torch==2.3.1+cpu
+torchaudio==2.3.1+cpu
+pyannote.audio==3.1.1
