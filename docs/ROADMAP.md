@@ -45,9 +45,9 @@ Cette roadmap est le fil rouge du projet. Chaque item possède un ID unique (NC-
 
 - [ ] NC-1101 `StartSession` / `EndSession` — tests: `test_session_service.py`
 - [ ] NC-1102 `RecordSegment` (ingestion audio chunk) — tests: `test_record_segment_service.py`
-- [ ] NC-1103 `TranscribeSegment` (asynchrone, mock provider) — tests: `test_transcribe_service.py`
+- [ ] NC-1103 `TranscribeSegment` (asynchrone) — tests: `test_transcribe_service.py`
 - [ ] NC-1104 `DiarizeSession` (serveur) — tests: `test_diarization_service.py`
-- [ ] NC-1105 `SummarizeSession` (LLM, mock) — tests: `test_summarize_service.py`
+- [ ] NC-1105 `SummarizeSession` (LLM) — tests: `test_summarize_service.py`
 - [ ] NC-1106 `GenerateActionItems` — tests: `test_action_items_service.py`
 - [ ] NC-1107 `IndexEmbeddings` — tests: `test_index_embeddings_service.py`
 - [ ] NC-1108 `SearchMemories` (RAG, filtres) — tests: `test_search_service.py`
