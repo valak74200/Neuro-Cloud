@@ -49,7 +49,7 @@ Cette roadmap est le fil rouge du projet. Chaque item possède un ID unique (NC-
 - [x] NC-1104 `DiarizeSession` (serveur) — tests: `test_diarization_service.py`
 - [x] NC-1105 `SummarizeSession` (LLM) — tests: `test_summarize_service.py`
 - [x] NC-1106 `GenerateActionItems` — tests: `test_action_items_service.py`
-- [ ] NC-1107 `IndexEmbeddings` — tests: `test_index_embeddings_service.py`
+- [x] NC-1107 `IndexEmbeddings` — tests: `test_index_embeddings_service.py`
 - [ ] NC-1108 `SearchMemories` (RAG, filtres) — tests: `test_search_service.py`
 - [ ] NC-1109 `ProactiveRecall` (scheduler) — tests: `test_proactive_recall_service.py`
 - [ ] NC-1110 `PurgeData` + `ExportData` — tests: `test_data_lifecycle_service.py`
