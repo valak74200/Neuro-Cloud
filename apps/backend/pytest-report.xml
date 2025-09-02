@@ -1,1 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="2" time="0.035" timestamp="2025-09-03T00:27:40.762755+02:00" hostname="MSI"><testcase classname="tests.test_proactive_recall_service" name="test_proactive_recall_selects_high_importance" time="0.001" /><testcase classname="tests.test_proactive_recall_service" name="test_proactive_recall_respects_cooldown" time="0.001" /></testsuite></testsuites>
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.057" timestamp="2025-09-03T00:36:14.710232+02:00" hostname="MSI"><testcase classname="tests.test_data_lifecycle_service" name="test_export_and_purge_user_memories" time="0.001"><failure message="TypeError: Memory.__init__() missing 1 required positional argument: 'source'">def test_export_and_purge_user_memories() -&gt; None:
+        repo = InMemoryMemoryRepository()
+        svc = DataLifecycleService(repo)
+    
+        # Seed
+&gt;       repo.save(Memory(id="m1", user_id="u1", content="A"))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: Memory.__init__() missing 1 required positional argument: 'source'
+
+tests/test_data_lifecycle_service.py:11: TypeError</failure></testcase></testsuite></testsuites>

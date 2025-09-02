@@ -14,3 +14,7 @@ class InMemoryMemoryRepository(MemoryRepository):
 
     def list_by_user(self, user_id: str) -> List[Memory]:
         return list(self._store.get(user_id, []))
+
+    def delete(self, memory_id: str) -> None:
+        for user_id, arr in list(self._store.items()):
+            self._store[user_id] = [m for m in arr if m.id != memory_id]
