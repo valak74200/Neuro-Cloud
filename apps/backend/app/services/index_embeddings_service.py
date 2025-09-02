@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from typing import Dict, List, Tuple
 
 from app.domain.entities.transcript_segment import TranscriptSegment
@@ -17,6 +18,28 @@ class InMemoryVectorIndex:
 
     def count(self) -> int:
         return len(self._store)
+
+    def items(self) -> List[Tuple[str, List[float], Dict[str, str]]]:
+        return list(self._store)
+
+    def search_by_vector(
+        self, query_vector: List[float], top_k: int = 5
+    ) -> List[Tuple[str, float, Dict[str, str]]]:
+        def cosine(a: List[float], b: List[float]) -> float:
+            if not a or not b or len(a) != len(b):
+                return 0.0
+            dot = sum(x * y for x, y in zip(a, b))
+            na = math.sqrt(sum(x * x for x in a))
+            nb = math.sqrt(sum(y * y for y in b))
+            if na == 0.0 or nb == 0.0:
+                return 0.0
+            return dot / (na * nb)
+
+        scored: List[Tuple[str, float, Dict[str, str]]] = []
+        for item_id, vec, meta in self._store:
+            scored.append((item_id, cosine(query_vector, vec), meta))
+        scored.sort(key=lambda t: t[1], reverse=True)
+        return scored[: max(1, top_k)]
 
 
 class IndexEmbeddingsService:
