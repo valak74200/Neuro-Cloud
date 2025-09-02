@@ -53,7 +53,7 @@ Cette roadmap est le fil rouge du projet. Chaque item possède un ID unique (NC-
 - [x] NC-1108 `SearchMemories` (RAG, filtres) — tests: `test_search_service.py`
 - [x] NC-1109 `ProactiveRecall` (scheduler) — tests: `test_proactive_recall_service.py`
 - [x] NC-1110 `PurgeData` + `ExportData` — tests: `test_data_lifecycle_service.py`
-- [ ] NC-1111 `RequestConsent` + `StoreConsentRecord` — tests: `test_consent_service.py`
+- [x] NC-1111 `RequestConsent` + `StoreConsentRecord` — tests: `test_consent_service.py`
 
 ### 1.3 Adapters & infrastructure
 
