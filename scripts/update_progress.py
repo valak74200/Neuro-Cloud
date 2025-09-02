@@ -28,6 +28,7 @@ TEST_TO_IDS = {
     "test_action_items_service.py": ["NC-1106"],
     "test_index_embeddings_service.py": ["NC-1107"],
     "test_search_service.py": ["NC-1108"],
+    "test_proactive_recall_service.py": ["NC-1109"],
 }
 
 ROOT = Path(__file__).resolve().parents[1]
