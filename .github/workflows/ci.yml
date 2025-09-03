@@ -42,6 +42,18 @@ jobs:
 
   backend-tests:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -59,11 +71,23 @@ jobs:
           pip install -U pip
           pip install -r requirements.txt
 
+      - name: Prepare database (alembic upgrade)
+        working-directory: apps/backend
+        env:
+          NC_OPENAI_API_KEY: ${{ secrets.NC_OPENAI_API_KEY }}
+          NC_SUMMARY_LANGUAGE: fr
+          NC_PG_DSN: postgresql+psycopg://postgres:postgres@localhost:5432/postgres
+        run: |
+          source .venv/bin/activate
+          export PYTHONPATH=.
+          alembic upgrade head
+
       - name: Run backend tests
         working-directory: apps/backend
         env:
           NC_OPENAI_API_KEY: ${{ secrets.NC_OPENAI_API_KEY }}
           NC_SUMMARY_LANGUAGE: fr
+          NC_PG_DSN: postgresql+psycopg://postgres:postgres@localhost:5432/postgres
         run: |
           source .venv/bin/activate
           export PYTHONPATH=.

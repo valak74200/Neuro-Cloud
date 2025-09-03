@@ -31,6 +31,7 @@ TEST_TO_IDS = {
     "test_proactive_recall_service.py": ["NC-1109"],
     "test_data_lifecycle_service.py": ["NC-1110"],
     "test_consent_service.py": ["NC-1111"],
+    "test_repo_postgres.py": ["NC-1201"],
 }
 
 ROOT = Path(__file__).resolve().parents[1]
