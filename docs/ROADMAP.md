@@ -58,7 +58,7 @@ Cette roadmap est le fil rouge du projet. Chaque item possède un ID unique (NC-
 ### 1.3 Adapters & infrastructure
 
 - [x] NC-1201 Postgres repositories (SQLAlchemy/Alembic) — tests: `test_repo_postgres.py`
-- [ ] NC-1202 Vector DB adapter (Qdrant/Weaviate) — tests: `test_vector_adapter.py`
+- [x] NC-1202 Vector DB adapter (Qdrant/Weaviate) — tests: `test_vector_adapter.py`
 - [ ] NC-1203 Storage audio (S3/MinIO) — tests: `test_storage_audio.py`
 - [ ] NC-1204 Whisper adapter (faster‑whisper serveur) — tests: `test_whisper_adapter.py`
 - [ ] NC-1205 Embeddings provider (OpenAI/alt UE) + cache — tests: `test_embeddings_provider.py`
