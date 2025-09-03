@@ -1,8 +1,14 @@
-# Neuro-Cloud — Mémoire personnelle augmentée par l’IA (Mobile)
+# Neuro-Cloud — Mémoire personnelle augmentée par l’IA
 
 Neuro-Cloud est une application mobile qui capture, transcrit, résume et indexe vos souvenirs (audio/texte) pour permettre une recherche sémantique et un rappel proactif. L’objectif est de servir à la fois le grand public et les professionnels, avec un fort accent sur la confidentialité, la conformité et l’ergonomie.
 
 > Mobile-only: l’application cible iOS et Android. Les limitations OS (micro en arrière-plan, capture d’autres apps) sont prises en compte via des modes d’écoute « smart‑active » (déclenchement par contexte/consentement) et non « always-on » illimitée.
+
+Statut du repo (backend):
+
+- FastAPI opérationnel (DDD/Clean Architecture)
+- Adaptateurs: Postgres (SQLAlchemy/Alembic), Qdrant (vector DB), S3/MinIO (fichiers), Whisper (OpenAI API et HTTP optionnel)
+- CI GitHub Actions: lint, tests (services Postgres/Qdrant/MinIO) + stubs Whisper/Diarization
 
 ---
 
@@ -10,7 +16,7 @@ Neuro-Cloud est une application mobile qui capture, transcrit, résume et indexe
 
 - [Pourquoi Neuro-Cloud ?](#pourquoi-neuro-cloud-)
 - [Fonctionnalités principales](#fonctionnalités-principales)
-- [Cas d’usage couverts (mobile)](#cas-dusage-couverts-mobile)
+- [Cas d’usage (mobile)](#cas-dusage-mobile)
 - [Architecture (DDD, Clean Architecture)](#architecture-ddd-clean-architecture)
 - [Structure du dépôt (monorepo)](#structure-du-dépôt-monorepo)
 - [Stack technique](#stack-technique)
@@ -50,7 +56,7 @@ Neuro-Cloud est une application mobile qui capture, transcrit, résume et indexe
 
 ---
 
-## Cas d’usage couverts (mobile)
+## Cas d’usage (mobile)
 
 - Réunions visioconf (Zoom/Meet/Teams) depuis mobile: capture micro local + bot notetaker serveur (rejoint la réunion via API) avec consentement.
 - Réunions présentielles (salle): micro device/BT + VAD + tampon + diarisation serveur.
@@ -149,8 +155,8 @@ Proposition alignée avec les règles du projet:
 
 - Mobile: React Native (Expo), Foreground Service Android, UI consentement, widgets push‑to‑talk, notifications.
 - Backend: Python FastAPI (Swagger/OpenAPI), HTTPX pour tests d’intégration.
-- Base de données: PostgreSQL (rel.), Qdrant/Weaviate (vectorielle), stockage fichiers chiffrés.
-- IA: Whisper/faster‑whisper (transcription), OpenAI ou alternative UE (embeddings), LLM (OpenAI/GPT).
+- Base de données: PostgreSQL (rel.), Qdrant/Weaviate (vectorielle), stockage fichiers chiffrés (S3/MinIO).
+- IA: Whisper (OpenAI API) ou serveur HTTP compatible, embeddings (OpenAI), LLM (OpenAI/GPT).
 - Authentification: Supabase Auth.
 - Observabilité: télémétrie anonymisée, santé pipeline, alertes.
 
@@ -207,9 +213,13 @@ Variables d’environnement (exemple):
 ```bash
 # Backend
 export NC_ENV=dev
-export NC_POSTGRES_URL=postgresql://postgres:postgres@localhost:5432/postgres
+export NC_PG_DSN=postgresql+psycopg://postgres:postgres@localhost:5432/postgres
 export NC_VECTORDB_URL=http://localhost:6333
 export NC_OPENAI_API_KEY=sk-...
+# Optionnel pour serveur Whisper HTTP local
+# export NC_WHISPER_URL=http://localhost:8080
+# export NC_WHISPER_PATH=/transcribe
+# export NC_WHISPER_API_KEY=...
 export NC_STORAGE_DIR=.data/storage
 
 # Mobile (Expo)
@@ -229,6 +239,7 @@ cd apps/backend
 python -m venv .venv && source .venv/bin/activate
 pip install -U pip
 pip install -r requirements.txt  # ou poetry install
+alembic upgrade head
 uvicorn app.main:app --reload --port 8000
 ```
 
@@ -249,6 +260,18 @@ Exemples:
 # Backend
 pytest -q --maxfail=1 --disable-warnings --cov=app
 
+# Intégration Postgres
+pytest -q -k test_repo_postgres
+
+# Adapter Qdrant (si Qdrant dispo ou via CI)
+pytest -q -k test_vector_adapter
+
+# Storage MinIO (si MinIO dispo ou via CI)
+pytest -q -k test_storage_audio
+
+# Transcription OpenAI (nécessite NC_OPENAI_API_KEY et NC_TEST_AUDIO_FILE)
+pytest -q -k test_transcribe_segment_returns_segment_with_text
+
 # Mobile
 npm run lint
 # E2E mobile
@@ -261,6 +284,8 @@ npm run lint
 
 - Git flow: main (stable), develop (intégration), feature/\*.
 - CI GitHub Actions: lint + tests unitaires + intégration + build.
+- Services CI: Postgres/Qdrant (services), MinIO (step Docker), stubs FastAPI (Whisper/Diarization)
+- Roadmap mise à jour automatiquement via scripts/update_progress.py
 - CD: backend (Render/Heroku), mobile (Expo EAS). Gate sur tests et qualité.
 
 ---
