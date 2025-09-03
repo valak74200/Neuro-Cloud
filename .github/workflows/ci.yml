@@ -97,6 +97,60 @@ jobs:
           echo "Qdrant not ready" >&2
           exit 1
 
+      - name: Create sample.wav for tests
+        working-directory: apps/backend
+        run: |
+          source .venv/bin/activate
+          python - <<'PY'
+          import wave, struct, math
+          framerate=16000
+          secs=1.0
+          amp=8000
+          freq=440.0
+          num=int(framerate*secs)
+          with wave.open('sample.wav','wb') as w:
+              w.setnchannels(1)
+              w.setsampwidth(2)
+              w.setframerate(framerate)
+              for n in range(num):
+                  val=int(amp*math.sin(2*math.pi*freq*n/framerate))
+                  w.writeframes(struct.pack('<h', val))
+          print('sample.wav written')
+          PY
+
+      - name: Start Whisper stub (FastAPI)
+        working-directory: apps/backend
+        run: |
+          source .venv/bin/activate
+          nohup python - <<'PY' >/dev/null 2>&1 &
+          from fastapi import FastAPI, File, UploadFile
+          from fastapi.responses import JSONResponse
+          import uvicorn
+          app = FastAPI()
+          @app.post("/transcribe")
+          async def transcribe(file: UploadFile = File(...)):
+              data = await file.read()
+              return JSONResponse({"text": "ok"})
+          uvicorn.run(app, host="0.0.0.0", port=8080)
+          PY
+          sleep 1
+
+      - name: Start Diarization stub (FastAPI)
+        working-directory: apps/backend
+        run: |
+          source .venv/bin/activate
+          nohup python - <<'PY' >/dev/null 2>&1 &
+          from fastapi import FastAPI, File, UploadFile
+          from fastapi.responses import JSONResponse
+          import uvicorn
+          app = FastAPI()
+          @app.post("/diarize")
+          async def diarize(file: UploadFile = File(...)):
+              return JSONResponse({"segments": [{"start_ms": 0, "end_ms": 500, "speaker": "A"}]})
+          uvicorn.run(app, host="0.0.0.0", port=7070)
+          PY
+          sleep 1
+
       - name: Start MinIO
         run: |
           docker rm -f ci-minio >/dev/null 2>&1 || true
@@ -127,6 +181,10 @@ jobs:
           NC_S3_ACCESS_KEY_ID: minio
           NC_S3_SECRET_ACCESS_KEY: minio12345
           NC_S3_BUCKET: neuro-cloud
+          NC_TEST_AUDIO_FILE: sample.wav
+          NC_WHISPER_URL: http://localhost:8080
+          NC_WHISPER_PATH: /transcribe
+          NC_DIARIZATION_URL: http://localhost:7070
         run: |
           source .venv/bin/activate
           export PYTHONPATH=.

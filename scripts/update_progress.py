@@ -34,6 +34,7 @@ TEST_TO_IDS = {
     "test_repo_postgres.py": ["NC-1201"],
     "test_vector_adapter.py": ["NC-1202"],
     "test_storage_audio.py": ["NC-1203"],
+    "test_whisper_adapter.py": ["NC-1204"],
 }
 
 ROOT = Path(__file__).resolve().parents[1]
