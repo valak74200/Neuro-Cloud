@@ -1,4 +1,5 @@
 import os
+import uuid
 
 import httpx
 import pytest
@@ -22,8 +23,9 @@ def _qdrant_reachable() -> bool:
 def test_qdrant_add_and_search_roundtrip():
     index = QdrantVectorIndex(collection="nc_test_memories")
     before = index.count()
-    index.add("a1", [0.1, 0.2, 0.3], {"k": "v"})
+    item_id = str(uuid.uuid4())
+    index.add(item_id, [0.1, 0.2, 0.3], {"k": "v"})
     assert index.count() == before + 1
 
     results = index.search_by_vector([0.1, 0.2, 0.3], top_k=1)
-    assert results and results[0][0] == "a1"
+    assert results and results[0][0] == item_id
