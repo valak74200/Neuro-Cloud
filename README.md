@@ -82,31 +82,31 @@ Le projet suit Domain‑Driven Design et Clean Architecture. Pas de logique mét
 ```mermaid
 graph TD
     subgraph "Mobile App (iOS/Android)"
-        UI[Interfaces: React Native Expo]
-        Listeners[Smart‑Active Listeners: Auto‑réunion / Hotword / VAD / Manuel]
+        UI["Interfaces: React Native Expo"]
+        Listeners["Smart‑Active Listeners: Auto‑réunion / Hotword / VAD / Manuel"]
         UI --> Listeners
     end
 
     subgraph "Backend (FastAPI)"
-        AppSvc[Application Services]
-        Domain[Domain (Entités, Aggregates, VOs, Domain Services)]
-        Repos[Ports: Repository Interfaces]
-        Impl[Adapters: Infra Implementations]
+        AppSvc["Application Services"]
+        Domain["Domain: Entités, Aggregates, VOs, Domain Services"]
+        Repos["Ports: Repository Interfaces"]
+        Impl["Adapters: Infra Implementations"]
         AppSvc --> Domain
         AppSvc --> Repos
         Repos --> Impl
     end
 
     subgraph "Data Stores"
-        PG[(PostgreSQL)]
-        VDB[(Qdrant / Weaviate)]
-        Files[(Stockage chiffré: Audio/Blobs)]
+        PG["PostgreSQL"]
+        VDB["Qdrant/Weaviate"]
+        Files["Stockage chiffré: Audio/Blobs"]
     end
 
     subgraph "AI Providers"
-        Whisper[Whisper / faster‑whisper]
-        Emb[Embeddings]
-        LLM[LLM]
+        Whisper["Whisper / faster‑whisper"]
+        Emb["Embeddings"]
+        LLM["LLM"]
     end
 
     Listeners -->|Segments audio| AppSvc
