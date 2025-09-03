@@ -58,19 +58,7 @@ jobs:
         image: qdrant/qdrant:latest
         ports:
           - 6333:6333
-      minio:
-        image: minio/minio:latest
-        env:
-          MINIO_ROOT_USER: minio
-          MINIO_ROOT_PASSWORD: minio12345
-        ports:
-          - 9000:9000
-          - 9001:9001
-        options: >-
-          --health-cmd "curl -f http://localhost:9000/minio/health/ready || exit 1"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+      # MinIO is started via a step to avoid service healthcheck issues
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -107,6 +95,25 @@ jobs:
             sleep 2
           done
           echo "Qdrant not ready" >&2
+          exit 1
+
+      - name: Start MinIO
+        run: |
+          docker rm -f ci-minio >/dev/null 2>&1 || true
+          docker run -d --name ci-minio \
+            -e MINIO_ROOT_USER=minio \
+            -e MINIO_ROOT_PASSWORD=minio12345 \
+            -p 9000:9000 -p 9001:9001 \
+            minio/minio:latest server /data --console-address ":9001"
+
+      - name: Wait for MinIO readiness
+        run: |
+          for i in {1..30}; do
+            curl -fsS http://localhost:9000/minio/health/ready >/dev/null && exit 0
+            echo "Waiting for MinIO..."
+            sleep 2
+          done
+          echo "MinIO not ready" >&2
           exit 1
 
       - name: Run backend tests
