@@ -54,6 +54,15 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      qdrant:
+        image: qdrant/qdrant:latest
+        ports:
+          - 6333:6333
+        options: >-
+          --health-cmd "wget --spider -q localhost:6333/collections || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -88,6 +97,7 @@ jobs:
           NC_OPENAI_API_KEY: ${{ secrets.NC_OPENAI_API_KEY }}
           NC_SUMMARY_LANGUAGE: fr
           NC_PG_DSN: postgresql+psycopg://postgres:postgres@localhost:5432/postgres
+          NC_VECTORDB_URL: http://localhost:6333
         run: |
           source .venv/bin/activate
           export PYTHONPATH=.
