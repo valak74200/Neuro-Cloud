@@ -57,3 +57,5 @@ pgdata/
 
 # Docker overrides
 docker-compose.override.yml
+
+alembic.ini
