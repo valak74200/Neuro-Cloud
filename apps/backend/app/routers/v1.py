@@ -11,6 +11,7 @@ from app.infrastructure.db.postgres import get_session_factory
 from app.infrastructure.repositories.postgres_memory_repository import (
     PostgresMemoryRepository,
 )
+from app.infrastructure.storage.s3_storage import S3AudioStorage
 from app.schemas.consent import ConsentCreateRequest, ConsentResponse
 from app.schemas.data_lifecycle import ExportResponse, PurgeRequest, PurgeResponse
 from app.schemas.memory import MemoryCreateRequest, MemoryResponse
@@ -29,7 +30,7 @@ from app.services.record_segment_service import RecordSegmentService
 from app.services.save_memory import SaveMemoryService
 from app.services.search_memories_service import SearchMemoriesService
 from app.services.session_service import SessionService
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 
 api = APIRouter(tags=["memories", "auth", "sessions", "consents"])
 
@@ -422,3 +423,56 @@ def purge_data(
     service = DataLifecycleService(repo=repo)
     deleted = service.purge_user_memories(user_id=current_user.id)
     return PurgeResponse(deleted=deleted)
+
+
+@api.post(
+    "/segments/upload",
+    summary="Uploader un segment audio",
+    description="Upload multipart d'un fichier audio vers S3/MinIO avec validations.",
+    tags=["sessions"],
+)
+async def upload_segment(
+    session_id: str = Form(...),
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+):
+    allowed_types = {
+        "audio/wav",
+        "audio/x-wav",
+        "audio/mpeg",
+        "audio/mp3",
+        "audio/ogg",
+        "audio/webm",
+    }
+    content_type = file.content_type or "application/octet-stream"
+    if content_type not in allowed_types:
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail=f"Unsupported content type: {content_type}",
+        )
+
+    data = await file.read()
+    import os as _os
+    import uuid as _uuid
+
+    max_bytes = int(_os.getenv("NC_UPLOAD_MAX_BYTES", "25000000"))
+    if len(data) > max_bytes:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail="File too large",
+        )
+
+    ext = {
+        "audio/wav": ".wav",
+        "audio/x-wav": ".wav",
+        "audio/mpeg": ".mp3",
+        "audio/mp3": ".mp3",
+        "audio/ogg": ".ogg",
+        "audio/webm": ".webm",
+    }.get(content_type, "")
+    key = f"users/{current_user.id}/sessions/{session_id}/{_uuid.uuid4()}{ext}"
+
+    storage = S3AudioStorage()
+    storage.put(key=key, data=data, content_type=content_type)
+
+    return {"key": key, "content_type": content_type, "size_bytes": len(data)}
