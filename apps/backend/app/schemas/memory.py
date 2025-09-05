@@ -4,21 +4,35 @@ from pydantic import BaseModel, Field
 
 
 class MemoryCreateRequest(BaseModel):
-    # Optional in authenticated flow (user taken from token),
-    # required in unauthenticated tests.
-    user_id: Optional[str] = None
-    content: str = Field(..., min_length=1)
+    """Requête de création d'un souvenir."""
+
+    # Optional en auth (user issu du token)
+    user_id: Optional[str] = Field(
+        default=None, description="Identifiant utilisateur (ignoré si authentifié)"
+    )
+    content: str = Field(
+        ...,
+        min_length=1,
+        description="Contenu textuel du souvenir",
+        examples=["Note rapide"],
+    )
     source: Literal[
         "manual",
         "hotword",
         "meeting",
         "course",
         "call",
-    ] = "manual"
+    ] = Field(
+        default="manual",
+        description="Source d'acquisition du souvenir",
+        examples=["manual"],
+    )
 
 
 class MemoryResponse(BaseModel):
-    id: str
-    user_id: str
-    content: str
-    source: str
+    """Réponse représentant un souvenir."""
+
+    id: str = Field(description="Identifiant du souvenir", examples=["mem_123"])
+    user_id: str = Field(description="Propriétaire du souvenir", examples=["user_123"])
+    content: str = Field(description="Contenu textuel")
+    source: str = Field(description="Source (manual, meeting, ...)")

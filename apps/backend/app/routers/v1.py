@@ -1,6 +1,6 @@
 import os
 from contextlib import contextmanager
-from typing import Generator
+from typing import Generator, List
 
 from app.domain.entities.user import User
 from app.domain.repositories.memory_repository import MemoryRepository
@@ -15,7 +15,7 @@ from app.services.in_memory_memory_repo import InMemoryMemoryRepository
 from app.services.save_memory import SaveMemoryService
 from fastapi import APIRouter, Depends
 
-api = APIRouter()
+api = APIRouter(tags=["memories", "auth"])
 
 
 @contextmanager
@@ -41,7 +41,13 @@ def get_memory_repository() -> MemoryRepository:
         return repo
 
 
-@api.post("/memories", response_model=MemoryResponse)
+@api.post(
+    "/memories",
+    response_model=MemoryResponse,
+    summary="Créer un souvenir",
+    description="Crée un souvenir pour l'utilisateur authentifié.",
+    tags=["memories"],
+)
 def create_memory(
     req: MemoryCreateRequest,
     current_user: User = Depends(get_current_user),
@@ -65,7 +71,13 @@ def create_memory(
     )
 
 
-@api.get("/me", response_model=UserResponse)
+@api.get(
+    "/me",
+    response_model=UserResponse,
+    summary="Utilisateur courant",
+    description="Retourne les informations de l'utilisateur authentifié.",
+    tags=["auth"],
+)
 def get_current_user_info(
     current_user: User = Depends(get_current_user),
 ) -> UserResponse:
@@ -76,3 +88,22 @@ def get_current_user_info(
         name=current_user.name,
         avatar_url=current_user.avatar_url,
     )
+
+
+@api.get(
+    "/memories",
+    response_model=List[MemoryResponse],
+    summary="Lister les souvenirs",
+    description="Liste tous les souvenirs de l'utilisateur authentifié.",
+    tags=["memories"],
+)
+def list_memories(
+    current_user: User = Depends(get_current_user),
+    repo: MemoryRepository = Depends(get_memory_repository),
+) -> List[MemoryResponse]:
+    """List all memories for the authenticated user."""
+    items = repo.list_by_user(current_user.id)
+    return [
+        MemoryResponse(id=m.id, user_id=m.user_id, content=m.content, source=m.source)
+        for m in items
+    ]
