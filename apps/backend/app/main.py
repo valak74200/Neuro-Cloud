@@ -1,3 +1,4 @@
+from app.infrastructure.rate_limit.limiter import RateLimitMiddleware
 from app.routers.v1 import api as api_v1
 from fastapi import FastAPI
 
@@ -10,6 +11,7 @@ def create_app() -> FastAPI:
         return {"status": "ok"}
 
     app.include_router(api_v1, prefix="/api/v1")
+    app.add_middleware(RateLimitMiddleware)
     return app
 
 
