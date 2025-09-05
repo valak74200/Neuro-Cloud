@@ -64,7 +64,7 @@ Cette roadmap est le fil rouge du projet. Chaque item possède un ID unique (NC-
 - [x] NC-1205 Embeddings provider (OpenAI/alt UE) + cache — tests: `test_embeddings_provider.py`
 - [x] NC-1206 LLM summarizer (OpenAI) + fallback — tests: `test_llm_summarizer.py`
 - [x] NC-1207 Auth Supabase (validation JWT) — tests: `test_auth_supabase.py`
-- [x] NC-1208 Observabilité (logs, traces, métriques) — tests: `test_observability.py`
+- [ ] NC-1208 Observabilité (logs, traces, métriques) — tests: à définir (repoussé)
 - [ ] NC-1209 Rate limiting / quotas — tests: `test_rate_limits.py`
 
 ### 1.4 API REST
