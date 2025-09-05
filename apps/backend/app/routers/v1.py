@@ -1,7 +1,8 @@
 import os
 from contextlib import contextmanager
-from typing import Generator, List
+from typing import Generator, List, Optional
 
+from app.domain.entities.capture_session import SessionType
 from app.domain.entities.user import User
 from app.domain.repositories.memory_repository import MemoryRepository
 from app.domain.repositories.session_repository import SessionRepository
@@ -152,15 +153,32 @@ def get_current_user_info(
     "/memories",
     response_model=List[MemoryResponse],
     summary="Lister les souvenirs",
-    description="Liste tous les souvenirs de l'utilisateur authentifié.",
+    description=(
+        "Liste tous les souvenirs de l'utilisateur authentifié (pagination/filtre)."
+    ),
     tags=["memories"],
 )
 def list_memories(
     current_user: User = Depends(get_current_user),
     repo: MemoryRepository = Depends(get_memory_repository),
+    limit: int = 20,
+    offset: int = 0,
+    q: Optional[str] = None,
+    source: Optional[str] = None,
+    sort: Optional[str] = None,
 ) -> List[MemoryResponse]:
-    """List all memories for the authenticated user."""
     items = repo.list_by_user(current_user.id)
+    if source:
+        items = [m for m in items if m.source == source]
+    if q:
+        ql = q.lower()
+        items = [m for m in items if ql in (m.content or "").lower()]
+    if sort:
+        reverse = sort.startswith("-")
+        key = sort[1:] if reverse else sort
+        if key == "content":
+            items.sort(key=lambda m: m.content or "", reverse=reverse)
+    items = items[offset : offset + max(1, limit)]
     return [
         MemoryResponse(id=m.id, user_id=m.user_id, content=m.content, source=m.source)
         for m in items
@@ -210,14 +228,20 @@ def end_session(
     "/sessions",
     response_model=List[SessionResponse],
     summary="Lister les sessions",
-    description="Liste toutes les sessions de l'utilisateur.",
+    description="Liste toutes les sessions de l'utilisateur (pagination/filtre).",
     tags=["sessions"],
 )
 def list_sessions(
     current_user: User = Depends(get_current_user),
     repo: SessionRepository = Depends(get_session_repository),
+    limit: int = 20,
+    offset: int = 0,
+    type: Optional[SessionType] = None,
 ) -> List[SessionResponse]:
     items = repo.list_by_user(current_user.id)
+    if type:
+        items = [s for s in items if s.type == type]
+    items = items[offset : offset + max(1, limit)]
     return [SessionResponse(**s.__dict__) for s in items]
 
 
@@ -262,15 +286,25 @@ def create_segment(
     "/sessions/{session_id}/segments",
     response_model=List[SegmentResponse],
     summary="Lister les segments",
-    description="Liste les segments d'une session.",
+    description="Liste les segments d'une session (pagination/filtre).",
     tags=["sessions"],
 )
 def list_segments(
     session_id: str,
     current_user: User = Depends(get_current_user),
+    limit: int = 20,
+    offset: int = 0,
+    q: Optional[str] = None,
+    speaker: Optional[str] = None,
 ):
     repo = get_segment_repository()
     items = repo.list_by_session(session_id)
+    if speaker:
+        items = [s for s in items if (s.speaker_label or "") == speaker]
+    if q:
+        ql = q.lower()
+        items = [s for s in items if ql in (s.text or "").lower()]
+    items = items[offset : offset + max(1, limit)]
     return [SegmentResponse(**s.__dict__) for s in items]
 
 
@@ -342,7 +376,9 @@ def recall_feed(
     description="Recherche de segments par similarité sémantique.",
     tags=["memories"],
 )
-def search(q: str, top_k: int = 5) -> List[SearchResult]:
+def search(
+    q: str, top_k: int = 5, session_id: Optional[str] = None
+) -> List[SearchResult]:
     provider = _get_embeddings_provider(safe=True)
     meta_by_id = {item_id: meta for item_id, _, meta in _vector_index.items()}
 
@@ -367,6 +403,7 @@ def search(q: str, top_k: int = 5) -> List[SearchResult]:
             (item_id, 1.0)
             for item_id, _, meta in _vector_index.items()
             if ql in (meta.get("text") or "").lower()
+            and (not session_id or meta.get("session_id") == session_id)
         ]
         return build(pairs[: max(1, top_k)])
 
@@ -378,6 +415,7 @@ def search(q: str, top_k: int = 5) -> List[SearchResult]:
             (item_id, 1.0)
             for item_id, _, meta in _vector_index.items()
             if ql in (meta.get("text") or "").lower()
+            and (not session_id or meta.get("session_id") == session_id)
         ]
         pairs = pairs[: max(1, top_k)]
     return build(pairs)
