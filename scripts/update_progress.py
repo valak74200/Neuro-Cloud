@@ -37,6 +37,7 @@ TEST_TO_IDS = {
     "test_whisper_adapter.py": ["NC-1204"],
     "test_embeddings_provider.py": ["NC-1205"],
     "test_llm_summarizer.py": ["NC-1206"],
+    "test_auth_supabase.py": ["NC-1207"],
 }
 
 ROOT = Path(__file__).resolve().parents[1]
