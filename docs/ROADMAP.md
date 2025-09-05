@@ -63,7 +63,7 @@ Cette roadmap est le fil rouge du projet. Chaque item possède un ID unique (NC-
 - [x] NC-1204 Whisper adapter (faster‑whisper serveur) — tests: `test_whisper_adapter.py`
 - [x] NC-1205 Embeddings provider (OpenAI/alt UE) + cache — tests: `test_embeddings_provider.py`
 - [x] NC-1206 LLM summarizer (OpenAI) + fallback — tests: `test_llm_summarizer.py`
-- [ ] NC-1207 Auth Supabase (validation JWT) — tests: `test_auth_supabase.py`
+- [x] NC-1207 Auth Supabase (validation JWT) — tests: `test_auth_supabase.py`
 - [ ] NC-1208 Observabilité (logs, traces, métriques) — tests: `test_observability.py`
 - [ ] NC-1209 Rate limiting / quotas — tests: `test_rate_limits.py`
 
