@@ -12,6 +12,7 @@ from app.infrastructure.repositories.postgres_memory_repository import (
     PostgresMemoryRepository,
 )
 from app.schemas.consent import ConsentCreateRequest, ConsentResponse
+from app.schemas.data_lifecycle import ExportResponse, PurgeRequest, PurgeResponse
 from app.schemas.memory import MemoryCreateRequest, MemoryResponse
 from app.schemas.recall import RecallCardResponse
 from app.schemas.search import SearchResult
@@ -19,6 +20,7 @@ from app.schemas.segment import SegmentCreateRequest, SegmentResponse
 from app.schemas.session import SessionCreateRequest, SessionEndRequest, SessionResponse
 from app.schemas.user import UserResponse
 from app.services.consent_service import ConsentService, InMemoryConsentStore
+from app.services.data_lifecycle_service import DataLifecycleService
 from app.services.in_memory_memory_repo import InMemoryMemoryRepository
 from app.services.in_memory_session_repo import InMemorySessionRepository
 from app.services.index_embeddings_service import InMemoryVectorIndex
@@ -32,11 +34,14 @@ from fastapi import APIRouter, Depends
 api = APIRouter(tags=["memories", "auth", "sessions", "consents"])
 
 
+_memory_repo: InMemoryMemoryRepository | None = None
+
+
 @contextmanager
 def _get_repo_context() -> Generator[MemoryRepository, None, None]:
     """Return a repository instance, preferring Postgres if configured.
 
-    Falls back to in-memory repository if no NC_PG_DSN is configured.
+    Falls back to a shared in-memory repository if no NC_PG_DSN is configured.
     """
     dsn = os.getenv("NC_PG_DSN")
     if dsn:
@@ -47,7 +52,10 @@ def _get_repo_context() -> Generator[MemoryRepository, None, None]:
         finally:
             session.close()
     else:
-        yield InMemoryMemoryRepository()
+        global _memory_repo
+        if _memory_repo is None:
+            _memory_repo = InMemoryMemoryRepository()
+        yield _memory_repo
 
 
 def get_memory_repository() -> MemoryRepository:
@@ -372,3 +380,45 @@ def search(q: str, top_k: int = 5) -> List[SearchResult]:
         ]
         pairs = pairs[: max(1, top_k)]
     return build(pairs)
+
+
+@api.get(
+    "/export",
+    response_model=ExportResponse,
+    summary="Exporter les données utilisateur",
+    description="Retourne tous les souvenirs de l'utilisateur.",
+    tags=["memories"],
+)
+def export_data(
+    current_user: User = Depends(get_current_user),
+    repo: MemoryRepository = Depends(get_memory_repository),
+) -> ExportResponse:
+    service = DataLifecycleService(repo=repo)
+    items = service.export_user_memories(user_id=current_user.id)
+    return ExportResponse(
+        items=[
+            MemoryResponse(
+                id=m.id, user_id=m.user_id, content=m.content, source=m.source
+            )
+            for m in items
+        ]
+    )
+
+
+@api.post(
+    "/purge",
+    response_model=PurgeResponse,
+    summary="Purger les données utilisateur",
+    description="Supprime tous les souvenirs de l'utilisateur (in-memory).",
+    tags=["memories"],
+)
+def purge_data(
+    req: PurgeRequest,
+    current_user: User = Depends(get_current_user),
+    repo: MemoryRepository = Depends(get_memory_repository),
+) -> PurgeResponse:
+    if not req.confirm:
+        return PurgeResponse(deleted=0)
+    service = DataLifecycleService(repo=repo)
+    deleted = service.purge_user_memories(user_id=current_user.id)
+    return PurgeResponse(deleted=deleted)

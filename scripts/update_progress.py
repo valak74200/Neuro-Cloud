@@ -45,6 +45,7 @@ TEST_TO_IDS = {
     "test_api_search.py": ["NC-1304"],
     "test_api_consents.py": ["NC-1305"],
     "test_api_recall.py": ["NC-1306"],
+    "test_api_data_lifecycle.py": ["NC-1307"],
 }
 
 ROOT = Path(__file__).resolve().parents[1]

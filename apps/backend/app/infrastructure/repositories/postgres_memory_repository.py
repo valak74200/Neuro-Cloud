@@ -3,7 +3,7 @@ from typing import List
 from app.domain.entities.memory import Memory
 from app.domain.repositories.memory_repository import MemoryRepository
 from app.infrastructure.models.memory import MemoryModel
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 
@@ -37,3 +37,8 @@ class PostgresMemoryRepository(MemoryRepository):
             )
             for row in rows
         ]
+
+    def delete(self, memory_id: str) -> None:
+        stmt = delete(MemoryModel).where(MemoryModel.id == memory_id)
+        self._session.execute(stmt)
+        self._session.commit()
