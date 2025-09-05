@@ -70,7 +70,7 @@ Cette roadmap est le fil rouge du projet. Chaque item possède un ID unique (NC-
 ### 1.4 API REST
 
 - [x] NC-1301 `POST /api/v1/memories` (créé) + `GET /memories` — tests: `test_api_memories_list.py`
-- [ ] NC-1302 Sessions: `POST /sessions` `POST /sessions/{id}/end` `GET /sessions` — tests: `test_api_sessions.py`
+- [x] NC-1302 Sessions: `POST /sessions` `POST /sessions/{id}/end` `GET /sessions` — tests: `test_api_sessions.py`
 - [ ] NC-1303 Segments: `POST /segments` (upload) `GET /sessions/{id}/segments` — tests: `test_api_segments.py`
 - [ ] NC-1304 Recherche: `GET /search` (q, filtres, pagination) — tests: `test_api_search.py`
 - [ ] NC-1305 Consentement: `POST /consents` `GET /consents` — tests: `test_api_consents.py`
