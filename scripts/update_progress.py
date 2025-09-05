@@ -40,6 +40,7 @@ TEST_TO_IDS = {
     "test_auth_supabase.py": ["NC-1207"],
     "test_rate_limits.py": ["NC-1209"],
     "test_api_memories_list.py": ["NC-1301"],
+    "test_api_sessions.py": ["NC-1302"],
 }
 
 ROOT = Path(__file__).resolve().parents[1]
