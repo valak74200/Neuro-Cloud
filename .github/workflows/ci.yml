@@ -227,10 +227,13 @@ jobs:
                   passed.add(Path(file_attr).name)
                   continue
               classname = tc.attrib.get('classname') or ''
-              # pytest classname often like 'tests.test_module'
-              mod = classname.split('.')[-1]
-              if mod.startswith('test_'):
-                  passed.add(mod + '.py') if not mod.endswith('.py') else passed.add(mod)
+              # pytest classname often like 'tests.test_module' or 'tests.test_module.TestClass'
+              parts = classname.split('.')
+              mod = next((p for p in parts if p.startswith('test_')), '')
+              if mod:
+                  if not mod.endswith('.py'):
+                      mod = mod + '.py'
+                  passed.add(mod)
 
           out = ','.join(sorted(passed))
           with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
