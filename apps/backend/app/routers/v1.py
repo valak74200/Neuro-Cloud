@@ -11,11 +11,13 @@ from app.infrastructure.db.postgres import get_session_factory
 from app.infrastructure.repositories.postgres_memory_repository import (
     PostgresMemoryRepository,
 )
+from app.schemas.consent import ConsentCreateRequest, ConsentResponse
 from app.schemas.memory import MemoryCreateRequest, MemoryResponse
 from app.schemas.search import SearchResult
 from app.schemas.segment import SegmentCreateRequest, SegmentResponse
 from app.schemas.session import SessionCreateRequest, SessionEndRequest, SessionResponse
 from app.schemas.user import UserResponse
+from app.services.consent_service import ConsentService, InMemoryConsentStore
 from app.services.in_memory_memory_repo import InMemoryMemoryRepository
 from app.services.in_memory_session_repo import InMemorySessionRepository
 from app.services.index_embeddings_service import InMemoryVectorIndex
@@ -25,7 +27,7 @@ from app.services.search_memories_service import SearchMemoriesService
 from app.services.session_service import SessionService
 from fastapi import APIRouter, Depends
 
-api = APIRouter(tags=["memories", "auth", "sessions"])
+api = APIRouter(tags=["memories", "auth", "sessions", "consents"])
 
 
 @contextmanager
@@ -56,6 +58,7 @@ _session_repo: SessionRepository = InMemorySessionRepository()
 _segment_repo = None
 _vector_index = InMemoryVectorIndex()
 _embeddings_provider = None  # lazy init to avoid env errors at import time
+_consent_store = InMemoryConsentStore()
 
 
 def _get_embeddings_provider(safe: bool = True):
@@ -258,6 +261,41 @@ def list_segments(
     repo = get_segment_repository()
     items = repo.list_by_session(session_id)
     return [SegmentResponse(**s.__dict__) for s in items]
+
+
+@api.post(
+    "/consents",
+    response_model=ConsentResponse,
+    summary="Créer un consentement",
+    description="Crée un enregistrement de consentement pour une session.",
+    tags=["consents"],
+)
+def create_consent(
+    req: ConsentCreateRequest,
+    current_user: User = Depends(get_current_user),
+):
+    service = ConsentService(store=_consent_store)
+    record = service.request_consent(
+        session_id=req.session_id,
+        participant_id=req.participant_id,
+        method=req.method,
+        granted=req.granted,
+        timestamp_ms=req.timestamp_ms,
+    )
+    return ConsentResponse(**record.__dict__)
+
+
+@api.get(
+    "/consents",
+    response_model=List[ConsentResponse],
+    summary="Lister les consentements",
+    description="Liste les consentements d'une session donnée.",
+    tags=["consents"],
+)
+def list_consents(session_id: str, current_user: User = Depends(get_current_user)):
+    service = ConsentService(store=_consent_store)
+    items = service.list_session_consents(session_id=session_id)
+    return [ConsentResponse(**r.__dict__) for r in items]
 
 
 @api.get(
