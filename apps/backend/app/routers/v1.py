@@ -229,20 +229,18 @@ def create_segment(
         text=req.text,
         speaker_label=req.speaker_label,
     )
-    # Indexation sémantique (best-effort)
+    # Indexation: toujours stocker l'item; embeddings si dispo
+    metadata = {"session_id": seg.session_id, "text": seg.text}
+    vector: List[float] = []
     provider = _get_embeddings_provider(safe=True)
     if provider is not None:
         try:
             vectors = provider.embed_texts([seg.text])
             if vectors:
-                _vector_index.add(
-                    item_id=seg.id,
-                    vector=vectors[0],
-                    metadata={"session_id": seg.session_id, "text": seg.text},
-                )
+                vector = vectors[0]
         except Exception:
-            # Pas d'indexation si provider indisponible
-            pass
+            vector = []
+    _vector_index.add(item_id=seg.id, vector=vector, metadata=metadata)
     return SegmentResponse(**seg.__dict__)
 
 
@@ -271,21 +269,40 @@ def list_segments(
 )
 def search(q: str, top_k: int = 5) -> List[SearchResult]:
     provider = _get_embeddings_provider(safe=True)
+    meta_by_id = {item_id: meta for item_id, _, meta in _vector_index.items()}
+
+    def build(pairs: List[tuple[str, float]]) -> List[SearchResult]:
+        out: List[SearchResult] = []
+        for item_id, score in pairs:
+            meta = meta_by_id.get(item_id, {})
+            out.append(
+                SearchResult(
+                    id=item_id,
+                    score=score,
+                    session_id=meta.get("session_id", ""),
+                    text=meta.get("text", ""),
+                )
+            )
+        return out
+
+    # Fallback lexical si pas d'API embeddings
     if provider is None:
-        return []
+        ql = q.lower()
+        pairs = [
+            (item_id, 1.0)
+            for item_id, _, meta in _vector_index.items()
+            if ql in (meta.get("text") or "").lower()
+        ]
+        return build(pairs[: max(1, top_k)])
+
     service = SearchMemoriesService(provider=provider, index=_vector_index)
     pairs = service.search(query=q, top_k=top_k)
-    # Construire la réponse avec le texte et session_id si présents
-    meta_by_id = {item_id: meta for item_id, _, meta in _vector_index.items()}
-    results: List[SearchResult] = []
-    for item_id, score in pairs:
-        meta = meta_by_id.get(item_id, {})
-        results.append(
-            SearchResult(
-                id=item_id,
-                score=score,
-                session_id=meta.get("session_id", ""),
-                text=meta.get("text", ""),
-            )
-        )
-    return results
+    if not pairs:
+        ql = q.lower()
+        pairs = [
+            (item_id, 1.0)
+            for item_id, _, meta in _vector_index.items()
+            if ql in (meta.get("text") or "").lower()
+        ]
+        pairs = pairs[: max(1, top_k)]
+    return build(pairs)
