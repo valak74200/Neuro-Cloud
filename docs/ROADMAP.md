@@ -75,7 +75,7 @@ Cette roadmap est le fil rouge du projet. Chaque item possède un ID unique (NC-
 - [x] NC-1304 Recherche: `GET /search` (q, filtres, pagination) — tests: `test_api_search.py`
 - [x] NC-1305 Consentement: `POST /consents` `GET /consents` — tests: `test_api_consents.py`
 - [x] NC-1306 Rappels: `GET /recall/feed` — tests: `test_api_recall.py`
-- [ ] NC-1307 Export/Suppression: `POST /export` `POST /purge` — tests: `test_api_data_lifecycle.py`
+- [x] NC-1307 Export/Suppression: `POST /export` `POST /purge` — tests: `test_api_data_lifecycle.py`
 
 ---
 
