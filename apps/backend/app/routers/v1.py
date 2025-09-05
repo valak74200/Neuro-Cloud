@@ -55,7 +55,20 @@ def get_memory_repository() -> MemoryRepository:
 _session_repo: SessionRepository = InMemorySessionRepository()
 _segment_repo = None
 _vector_index = InMemoryVectorIndex()
-_embeddings_provider = OpenAIEmbeddingsProvider()
+_embeddings_provider = None  # lazy init to avoid env errors at import time
+
+
+def _get_embeddings_provider(safe: bool = True):
+    global _embeddings_provider
+    if _embeddings_provider is not None:
+        return _embeddings_provider
+    try:
+        _embeddings_provider = OpenAIEmbeddingsProvider()
+        return _embeddings_provider
+    except Exception:
+        if safe:
+            return None
+        raise
 
 
 def get_session_repository() -> SessionRepository:
@@ -217,17 +230,19 @@ def create_segment(
         speaker_label=req.speaker_label,
     )
     # Indexation sémantique (best-effort)
-    try:
-        vectors = _embeddings_provider.embed_texts([seg.text])
-        if vectors:
-            _vector_index.add(
-                item_id=seg.id,
-                vector=vectors[0],
-                metadata={"session_id": seg.session_id, "text": seg.text},
-            )
-    except Exception:
-        # Pas d'indexation si provider indisponible
-        pass
+    provider = _get_embeddings_provider(safe=True)
+    if provider is not None:
+        try:
+            vectors = provider.embed_texts([seg.text])
+            if vectors:
+                _vector_index.add(
+                    item_id=seg.id,
+                    vector=vectors[0],
+                    metadata={"session_id": seg.session_id, "text": seg.text},
+                )
+        except Exception:
+            # Pas d'indexation si provider indisponible
+            pass
     return SegmentResponse(**seg.__dict__)
 
 
@@ -255,7 +270,10 @@ def list_segments(
     tags=["memories"],
 )
 def search(q: str, top_k: int = 5) -> List[SearchResult]:
-    service = SearchMemoriesService(provider=_embeddings_provider, index=_vector_index)
+    provider = _get_embeddings_provider(safe=True)
+    if provider is None:
+        return []
+    service = SearchMemoriesService(provider=provider, index=_vector_index)
     pairs = service.search(query=q, top_k=top_k)
     # Construire la réponse avec le texte et session_id si présents
     meta_by_id = {item_id: meta for item_id, _, meta in _vector_index.items()}
