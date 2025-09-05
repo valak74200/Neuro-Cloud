@@ -11,10 +11,12 @@ from app.infrastructure.repositories.postgres_memory_repository import (
     PostgresMemoryRepository,
 )
 from app.schemas.memory import MemoryCreateRequest, MemoryResponse
+from app.schemas.segment import SegmentCreateRequest, SegmentResponse
 from app.schemas.session import SessionCreateRequest, SessionEndRequest, SessionResponse
 from app.schemas.user import UserResponse
 from app.services.in_memory_memory_repo import InMemoryMemoryRepository
 from app.services.in_memory_session_repo import InMemorySessionRepository
+from app.services.record_segment_service import RecordSegmentService
 from app.services.save_memory import SaveMemoryService
 from app.services.session_service import SessionService
 from fastapi import APIRouter, Depends
@@ -47,10 +49,21 @@ def get_memory_repository() -> MemoryRepository:
 
 # Global in-memory session repository instance (for tests/dev)
 _session_repo: SessionRepository = InMemorySessionRepository()
+_segment_repo = None
 
 
 def get_session_repository() -> SessionRepository:
     return _session_repo
+
+
+def get_segment_repository():
+    # lazy import to avoid circulars
+    global _segment_repo
+    if _segment_repo is None:
+        from app.services.in_memory_session_repo import InMemorySegmentRepository
+
+        _segment_repo = InMemorySegmentRepository()
+    return _segment_repo
 
 
 @api.post(
@@ -173,3 +186,44 @@ def list_sessions(
 ) -> List[SessionResponse]:
     items = repo.list_by_user(current_user.id)
     return [SessionResponse(**s.__dict__) for s in items]
+
+
+@api.post(
+    "/segments",
+    response_model=SegmentResponse,
+    summary="Créer un segment",
+    description="Crée un segment de transcription attaché à une session.",
+    tags=["sessions"],
+)
+def create_segment(
+    req: SegmentCreateRequest,
+    current_user: User = Depends(get_current_user),
+    sessions: SessionRepository = Depends(get_session_repository),
+):
+    service = RecordSegmentService(
+        session_repo=sessions, segment_repo=get_segment_repository()
+    )
+    seg = service.record_segment(
+        session_id=req.session_id,
+        start_ms=req.start_ms,
+        end_ms=req.end_ms,
+        text=req.text,
+        speaker_label=req.speaker_label,
+    )
+    return SegmentResponse(**seg.__dict__)
+
+
+@api.get(
+    "/sessions/{session_id}/segments",
+    response_model=List[SegmentResponse],
+    summary="Lister les segments",
+    description="Liste les segments d'une session.",
+    tags=["sessions"],
+)
+def list_segments(
+    session_id: str,
+    current_user: User = Depends(get_current_user),
+):
+    repo = get_segment_repository()
+    items = repo.list_by_session(session_id)
+    return [SegmentResponse(**s.__dict__) for s in items]
