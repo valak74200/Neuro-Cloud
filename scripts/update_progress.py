@@ -36,6 +36,7 @@ TEST_TO_IDS = {
     "test_storage_audio.py": ["NC-1203"],
     "test_whisper_adapter.py": ["NC-1204"],
     "test_embeddings_provider.py": ["NC-1205"],
+    "test_llm_summarizer.py": ["NC-1206"],
 }
 
 ROOT = Path(__file__).resolve().parents[1]
