@@ -76,7 +76,7 @@ Cette roadmap est le fil rouge du projet. Chaque item possède un ID unique (NC-
 - [x] NC-1305 Consentement: `POST /consents` `GET /consents` — tests: `test_api_consents.py`
 - [x] NC-1306 Rappels: `GET /recall/feed` — tests: `test_api_recall.py`
 - [x] NC-1307 Export/Suppression: `POST /export` `POST /purge` — tests: `test_api_data_lifecycle.py`
-- [ ] NC-1308 Segments (upload audio multipart + S3/MinIO, validation taille/MIME) — tests: `test_api_segments_upload.py`
+- [x] NC-1308 Segments (upload audio multipart + S3/MinIO, validation taille/MIME) — tests: `test_api_segments_upload.py`
 - [ ] NC-1309 Pagination/tri/filtres (memories/sessions/segments/search) — tests: `test_api_pagination_filters.py`
 - [ ] NC-1310 Recherche sémantique via Qdrant (brancher index + indexation asynchrone) — tests: `test_api_search_qdrant.py`
 - [ ] NC-1311 Tâches asynchrones (transcription/diarisation/indexation) + endpoints statut — tests: `test_background_jobs.py`
