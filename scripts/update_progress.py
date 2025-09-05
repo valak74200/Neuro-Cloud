@@ -42,6 +42,7 @@ TEST_TO_IDS = {
     "test_api_memories_list.py": ["NC-1301"],
     "test_api_sessions.py": ["NC-1302"],
     "test_api_segments.py": ["NC-1303"],
+    "test_api_search.py": ["NC-1304"],
 }
 
 ROOT = Path(__file__).resolve().parents[1]

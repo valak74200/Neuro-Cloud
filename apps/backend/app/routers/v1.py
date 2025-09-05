@@ -5,19 +5,23 @@ from typing import Generator, List
 from app.domain.entities.user import User
 from app.domain.repositories.memory_repository import MemoryRepository
 from app.domain.repositories.session_repository import SessionRepository
+from app.infrastructure.ai.openai_embeddings_provider import OpenAIEmbeddingsProvider
 from app.infrastructure.auth.auth_middleware import get_current_user
 from app.infrastructure.db.postgres import get_session_factory
 from app.infrastructure.repositories.postgres_memory_repository import (
     PostgresMemoryRepository,
 )
 from app.schemas.memory import MemoryCreateRequest, MemoryResponse
+from app.schemas.search import SearchResult
 from app.schemas.segment import SegmentCreateRequest, SegmentResponse
 from app.schemas.session import SessionCreateRequest, SessionEndRequest, SessionResponse
 from app.schemas.user import UserResponse
 from app.services.in_memory_memory_repo import InMemoryMemoryRepository
 from app.services.in_memory_session_repo import InMemorySessionRepository
+from app.services.index_embeddings_service import InMemoryVectorIndex
 from app.services.record_segment_service import RecordSegmentService
 from app.services.save_memory import SaveMemoryService
+from app.services.search_memories_service import SearchMemoriesService
 from app.services.session_service import SessionService
 from fastapi import APIRouter, Depends
 
@@ -50,6 +54,8 @@ def get_memory_repository() -> MemoryRepository:
 # Global in-memory session repository instance (for tests/dev)
 _session_repo: SessionRepository = InMemorySessionRepository()
 _segment_repo = None
+_vector_index = InMemoryVectorIndex()
+_embeddings_provider = OpenAIEmbeddingsProvider()
 
 
 def get_session_repository() -> SessionRepository:
@@ -210,6 +216,18 @@ def create_segment(
         text=req.text,
         speaker_label=req.speaker_label,
     )
+    # Indexation sémantique (best-effort)
+    try:
+        vectors = _embeddings_provider.embed_texts([seg.text])
+        if vectors:
+            _vector_index.add(
+                item_id=seg.id,
+                vector=vectors[0],
+                metadata={"session_id": seg.session_id, "text": seg.text},
+            )
+    except Exception:
+        # Pas d'indexation si provider indisponible
+        pass
     return SegmentResponse(**seg.__dict__)
 
 
@@ -227,3 +245,29 @@ def list_segments(
     repo = get_segment_repository()
     items = repo.list_by_session(session_id)
     return [SegmentResponse(**s.__dict__) for s in items]
+
+
+@api.get(
+    "/search",
+    response_model=List[SearchResult],
+    summary="Recherche sémantique",
+    description="Recherche de segments par similarité sémantique.",
+    tags=["memories"],
+)
+def search(q: str, top_k: int = 5) -> List[SearchResult]:
+    service = SearchMemoriesService(provider=_embeddings_provider, index=_vector_index)
+    pairs = service.search(query=q, top_k=top_k)
+    # Construire la réponse avec le texte et session_id si présents
+    meta_by_id = {item_id: meta for item_id, _, meta in _vector_index.items()}
+    results: List[SearchResult] = []
+    for item_id, score in pairs:
+        meta = meta_by_id.get(item_id, {})
+        results.append(
+            SearchResult(
+                id=item_id,
+                score=score,
+                session_id=meta.get("session_id", ""),
+                text=meta.get("text", ""),
+            )
+        )
+    return results
