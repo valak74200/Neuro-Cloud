@@ -185,6 +185,9 @@ jobs:
           NC_WHISPER_URL: http://localhost:8080
           NC_WHISPER_PATH: /transcribe
           NC_DIARIZATION_URL: http://localhost:7070
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_JWT_SECRET }}
+          SUPABASE_TEST_JWT: ${{ secrets.SUPABASE_TEST_JWT }}
         run: |
           source .venv/bin/activate
           export PYTHONPATH=.

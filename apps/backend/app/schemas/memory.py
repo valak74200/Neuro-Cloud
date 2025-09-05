@@ -1,10 +1,12 @@
-from typing import Literal
+from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
 
 
 class MemoryCreateRequest(BaseModel):
-    user_id: str = Field(..., min_length=1)
+    # Optional in authenticated flow (user taken from token),
+    # required in unauthenticated tests.
+    user_id: Optional[str] = None
     content: str = Field(..., min_length=1)
     source: Literal[
         "manual",
