@@ -13,6 +13,7 @@ from app.infrastructure.repositories.postgres_memory_repository import (
 )
 from app.schemas.consent import ConsentCreateRequest, ConsentResponse
 from app.schemas.memory import MemoryCreateRequest, MemoryResponse
+from app.schemas.recall import RecallCardResponse
 from app.schemas.search import SearchResult
 from app.schemas.segment import SegmentCreateRequest, SegmentResponse
 from app.schemas.session import SessionCreateRequest, SessionEndRequest, SessionResponse
@@ -21,6 +22,7 @@ from app.services.consent_service import ConsentService, InMemoryConsentStore
 from app.services.in_memory_memory_repo import InMemoryMemoryRepository
 from app.services.in_memory_session_repo import InMemorySessionRepository
 from app.services.index_embeddings_service import InMemoryVectorIndex
+from app.services.proactive_recall_service import ProactiveRecallService
 from app.services.record_segment_service import RecordSegmentService
 from app.services.save_memory import SaveMemoryService
 from app.services.search_memories_service import SearchMemoriesService
@@ -296,6 +298,32 @@ def list_consents(session_id: str, current_user: User = Depends(get_current_user
     service = ConsentService(store=_consent_store)
     items = service.list_session_consents(session_id=session_id)
     return [ConsentResponse(**r.__dict__) for r in items]
+
+
+@api.get(
+    "/recall/feed",
+    response_model=List[RecallCardResponse],
+    summary="Feed de rappels",
+    description="Retourne des cartes à rappeler (importance, cooldown).",
+    tags=["memories"],
+)
+def recall_feed(
+    current_user: User = Depends(get_current_user),
+) -> List[RecallCardResponse]:
+    # Pour l’instant, on ne persiste pas les RecallCards; on retourne un feed vide
+    service = ProactiveRecallService()
+    cards = service.select(cards=[], last_recall_at={})
+    return [
+        RecallCardResponse(
+            id=c.id,
+            user_id=c.user_id,
+            title=c.title,
+            summary=c.summary,
+            tags=[t.value for t in c.tags],
+            importance=c.importance.score,
+        )
+        for c in cards
+    ]
 
 
 @api.get(
