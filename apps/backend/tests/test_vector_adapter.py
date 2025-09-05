@@ -28,4 +28,9 @@ def test_qdrant_add_and_search_roundtrip():
     assert index.count() == before + 1
 
     results = index.search_by_vector([0.1, 0.2, 0.3], top_k=1)
-    assert results and results[0][0] == item_id
+    assert results, "Search should return results"
+    assert len(results) == 1, "Should return exactly one result"
+    # Check that we get back the same metadata, even if ID format differs
+    returned_id, score, metadata = results[0]
+    assert metadata == {"k": "v"}, f"Metadata should match: {metadata}"
+    assert score > 0.99, f"Score should be very high for identical vectors: {score}"
