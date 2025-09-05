@@ -21,11 +21,6 @@ class SupabaseAuthProvider(AuthProvider):
             "SUPABASE_JWT_SECRET"
         )
 
-        if not self._supabase_url:
-            raise RuntimeError("SUPABASE_URL is required")
-        if not self._supabase_jwt_secret:
-            raise RuntimeError("SUPABASE_JWT_SECRET is required")
-
         # JWKS endpoint for RS* algorithms (Supabase):
         # https://<project>.supabase.co/auth/v1/certs
         self._jwks_url = f"{self._supabase_url}/auth/v1/certs"
@@ -110,6 +105,8 @@ class SupabaseAuthProvider(AuthProvider):
                 )
             elif alg.startswith("RS"):
                 # RS*: verify against Supabase JWKS certs
+                if not self._supabase_url:
+                    raise ValueError("SUPABASE_URL is required for RS tokens")
                 jwk_client = PyJWKClient(self._jwks_url)
                 signing_key = jwk_client.get_signing_key_from_jwt(token).key
                 payload = jwt.decode(

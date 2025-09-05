@@ -170,6 +170,19 @@ jobs:
           echo "MinIO not ready" >&2
           exit 1
 
+      - name: Generate live JWT (Supabase)
+        run: |
+          TOKEN=$(curl -s -X POST "$SUPABASE_URL/auth/v1/token?grant_type=password" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Content-Type: application/json" \
+            -d "{\"email\":\"$SUPABASE_TEST_EMAIL\",\"password\":\"$SUPABASE_TEST_PASSWORD\"}" | jq -r .access_token)
+          echo "SUPABASE_TEST_JWT=$TOKEN" >> $GITHUB_ENV
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_TEST_EMAIL: ${{ secrets.SUPABASE_TEST_EMAIL }}
+          SUPABASE_TEST_PASSWORD: ${{ secrets.SUPABASE_TEST_PASSWORD }}
+
       - name: Run backend tests
         working-directory: apps/backend
         env:

@@ -90,18 +90,18 @@ class TestSupabaseAuthProvider:
             assert provider._supabase_jwt_secret == "test-secret"
 
     def test_init_missing_url(self):
-        """Test error when Supabase URL is missing."""
+        """No error at init when SUPABASE_URL missing (validated at verify time)."""
         with patch.dict(os.environ, {}, clear=True):
-            with pytest.raises(RuntimeError, match="SUPABASE_URL is required"):
-                SupabaseAuthProvider()
+            provider = SupabaseAuthProvider(supabase_jwt_secret="x")
+            assert isinstance(provider, SupabaseAuthProvider)
 
     def test_init_missing_secret(self):
-        """Test error when JWT secret is missing."""
+        """No error at init when secret missing (validated at verify time)."""
         with patch.dict(
             os.environ, {"SUPABASE_URL": "https://test.supabase.co"}, clear=True
         ):
-            with pytest.raises(RuntimeError, match="SUPABASE_JWT_SECRET is required"):
-                SupabaseAuthProvider()
+            provider = SupabaseAuthProvider()
+            assert isinstance(provider, SupabaseAuthProvider)
 
     @pytest.mark.skipif(
         not os.getenv("SUPABASE_JWT_SECRET"), reason="Requires SUPABASE_JWT_SECRET"
