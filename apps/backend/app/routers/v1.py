@@ -13,6 +13,7 @@ from app.infrastructure.repositories.postgres_memory_repository import (
     PostgresMemoryRepository,
 )
 from app.infrastructure.storage.s3_storage import S3AudioStorage
+from app.infrastructure.vector.qdrant_index import QdrantVectorIndex
 from app.schemas.consent import ConsentCreateRequest, ConsentResponse
 from app.schemas.data_lifecycle import ExportResponse, PurgeRequest, PurgeResponse
 from app.schemas.memory import MemoryCreateRequest, MemoryResponse
@@ -71,6 +72,7 @@ _segment_repo = None
 _vector_index = InMemoryVectorIndex()
 _embeddings_provider = None  # lazy init to avoid env errors at import time
 _consent_store = InMemoryConsentStore()
+_qdrant_index: QdrantVectorIndex | None = None
 
 
 def _get_embeddings_provider(safe: bool = True):
@@ -84,6 +86,19 @@ def _get_embeddings_provider(safe: bool = True):
         if safe:
             return None
         raise
+
+
+def _get_qdrant_index() -> QdrantVectorIndex | None:
+    global _qdrant_index
+    if _qdrant_index is not None:
+        return _qdrant_index
+    try:
+        _qdrant_index = QdrantVectorIndex()
+        # touch client
+        _qdrant_index.count()
+        return _qdrant_index
+    except Exception:
+        return None
 
 
 def get_session_repository() -> SessionRepository:
@@ -279,6 +294,13 @@ def create_segment(
         except Exception:
             vector = []
     _vector_index.add(item_id=seg.id, vector=vector, metadata=metadata)
+    if vector:
+        qi = _get_qdrant_index()
+        if qi is not None:
+            try:
+                qi.add(item_id=seg.id, vector=vector, metadata=metadata)
+            except Exception:
+                pass
     return SegmentResponse(**seg.__dict__)
 
 
@@ -407,7 +429,11 @@ def search(
         ]
         return build(pairs[: max(1, top_k)])
 
-    service = SearchMemoriesService(provider=provider, index=_vector_index)
+    qindex = _get_qdrant_index()
+    index_for_search = qindex if qindex is not None else _vector_index
+    service = SearchMemoriesService(
+        provider=provider, index=index_for_search
+    )  # type: ignore[arg-type]
     pairs = service.search(query=q, top_k=top_k)
     if not pairs:
         ql = q.lower()
